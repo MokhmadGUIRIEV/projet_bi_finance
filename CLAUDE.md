@@ -26,7 +26,7 @@ PostgreSQL = data warehouse
   marts         or     : schéma en étoile (dim_* conformes, fct_* au grain documenté) + marts d'analyse
   ml                   : sorties Python (prévisions, réserve optimale, contrôle a posteriori)
         ▼
-Power BI : powerbi/Cresus/Cresus.pbip (6 pages, 75 mesures DAX), import depuis marts
+Power BI : powerbi/Cresus/Cresus.pbip (5 pages, 48 mesures DAX, 3 rôles RLS), import depuis marts
 ```
 dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentation et lignage : `dbt docs`.
 
@@ -35,7 +35,7 @@ dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentatio
 2. **Décision** : construire **3 ans (2023-2025)** de flux ancrés sur des **séries réelles** (docs/07).
    - Les dépôts à vue par pays viennent de la BCE, de la Fed (hebdomadaire), de la Banque du Canada, du SCB, de Danmarks Nationalbank, du FMI et de la BEAC.
    - Les taux directeurs viennent des API officielles et des communiqués BCEAO / BEAC.
-   - PaySim ne sert plus que de « texture » : **forme** des montants, heures, fraude.
+   - PaySim ne sert plus que de « texture » à la génération : **forme** des montants, heures, fraude. Il n'est plus chargé dans l'entrepôt.
    - **Réalisme économique** (docs/07 § 3.4) : composition des décaissements par type selon la zone, tickets recalés par type (carte 45 €, retrait 110 €, prélèvement 180 €…) et modulés par le niveau de vie du pays (Côte d'Ivoire 0,35, Norvège 1,5…), prélèvements en début de mois, traitements en lot le matin. Les totaux restent exactement ancrés sur les dépôts réels : seuls le nombre et la taille des opérations changent.
 3. **Exports bruts** (`etl/systemes_sources.py`, docs/08) : la « vérité » est exportée au format de 4 systèmes, avec des défauts réalistes injectés volontairement, tels qu'on les rencontre dans les extractions bancaires en entreprise.
 
@@ -59,14 +59,14 @@ dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentatio
 
    | Taille de lot | Lignes brutes | Fichiers | Où | Usage |
    |---|---|---|---|---|
-   | **500** (défaut) | 4,3 M | 64 Mo compressés | `data/sources_internes/` (Git) | dépôt, démo, collègues (~8 min, base de 1,9 Go) |
+   | **500** (défaut) | 4,3 M | 64 Mo compressés | `data/sources_internes/` (Git) | dépôt, démo, collègues (~7 min, base de 1,8 Go) |
    | **50** | **42,7 M** | **586 Mo compressés** | `data/generees/lot_50/` (local) | **gros volume local (~20 Go au total)** |
 
    **Mesuré sur 6 cœurs / 15 Go de RAM, en lots de 50 (31/10/2026)** :
    - génération : 16 min ;
    - chargement : 11 min (rechargement incrémental : seuls les fichiers modifiés) ;
-   - `dbt build` : 39 min, 138 contrôles réussis + 18 sur les marts de prévision ; pipeline complet depuis zéro : ~1 h 10 ;
-   - base PostgreSQL : **18 Go**. Prévoir **~30 Go libres** (fichiers temporaires pendant `dbt build`).
+   - `dbt build` : 39 min ; pipeline complet depuis zéro : ~1 h 10. Contrôles après allègement (04/11/2026) : 119 réussis + 15 sur les marts de prévision ;
+   - base PostgreSQL : **17 Go**. Prévoir **~30 Go libres** (fichiers temporaires pendant `dbt build`).
 
    Les montants totaux et les ancrages sont identiques quelle que soit la taille de lot. Les indicateurs portés par les opérations rares en dépendent : part des gros décaissements de 2,6 % (lots de 2000) à 9,6 % (500) et 13,8 % (50) ; fraude de 0,015 % à 0,034 %. Seul le gros volume fait référence pour ces deux chiffres.
 
@@ -77,7 +77,7 @@ python -m venv .venv ; .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 copy .env.example .env
 docker compose up -d                       # PostgreSQL 16 sur localhost:5432, base "cresus"
-python pipeline.py                         # jeu versionné (lots de 500) : ~8 min, aucun téléchargement
+python pipeline.py                         # jeu versionné (lots de 500) : ~7 min, aucun téléchargement
 ```
 **Gros volume en local** (nécessite le CSV PaySim dans `data/raw/`, à télécharger depuis Kaggle) :
 ```powershell
@@ -112,7 +112,7 @@ Autres commandes utiles :
 | `etl/generateur_flux.py`, `etl/systemes_sources.py` | Vérité ancrée sur le réel, puis exports bruts (pour `--regenerer`) |
 | `etl/sources_reelles.py` | API des banques centrales (dépôts, taux) → `data/sources/` |
 | `etl/prevision.py` | Champion/challenger quotidien, Monte-Carlo, réserve requise P99, change |
-| `etl/controle_a_posteriori.py` | Prévision vs dépôts réels de janvier 2026 (hors échantillon) |
+| `etl/controle_a_posteriori.py` | Prévision vs dépôts réels de janvier 2026 (hors échantillon), lus dans `data/sources/depots_reels_janvier_2026.csv` |
 | `dbt/models/staging/stg_*__operations.sql` | Nettoyage par système source |
 | `dbt/models/intermediate/int_operations_controlees.sql` | Règles RG-NET, motif de rejet |
 | `dbt/models/marts/` | Dimensions, faits, analyses, prévision (grains dans `schema.yml`) |
@@ -138,8 +138,10 @@ Autres commandes utiles :
 7. Exports bruts multi-systèmes et vrai ETL de nettoyage, versionnés dans Git ; option `--taille-lot` pour les gros volumes en local.
 8. Audit de réalisme économique : les tickets PaySim (retrait médian 1 500 €, identiques dans tous les pays) faussaient la composition des flux (48 % des décaissements en retraits DAB). Composition par zone, tickets par type et niveau de vie ajoutés ; fraude PaySim ramenée à l'ordre de grandeur BCE. Les totaux ancrés et les résultats clés (§ 8) sont inchangés.
 9. Défauts d'entreprise ajoutés aux exports : migration de format, dérive de schéma, fichiers Excel, montants comptables, pré-autorisations, données tardives, fichiers renvoyés, valeurs nulles codées, encodage cassé, en-têtes répétés. Chacun a sa règle RG-NET et le rapprochement comptable reste exact.
-10. Premier test dans Power BI Desktop (01/11/2026). Il a révélé ce que les validations de schéma ne pouvaient pas voir : import bloqué par des `numeric` de plus de 28 chiffres, filtres inutilisables (liste déroulante coupée), courbes additionnant des devises différentes, totaux de jours sans sens, simulateur incohérent avec `mart_stress_test` (fenêtre de 7 jours au lieu de 30, besoin compensé entre filiales). Tout est corrigé et les valeurs ont été recoupées avec la base.
+10. Premier test dans Power BI Desktop (01/11/2026). Il a révélé ce que les validations de schéma ne pouvaient pas voir : import bloqué par des `numeric` de plus de 28 chiffres, filtres inutilisables (liste déroulante coupée), courbes additionnant des devises différentes, totaux de jours sans sens, simulateur incohérent avec `mart_stress_test` (fenêtre de 7 jours au lieu de 30, besoin compensé entre filiales). Tout est corrigé et les valeurs ont été recoupées avec la base. Un second contrôle (03/11/2026) a montré que la carte VaR ignorait les filtres filiale et région, car la VaR est calculée par devise : mesure corrigée. Pour retester une mesure, rouvrir le projet : la session Power BI peut garder d'anciens résultats en cache.
 11. Jeu versionné régénéré avec le générateur actuel en lots de 500, pour garder un dépôt léger.
+12. Allègement après comparaison avec le cours (04/11/2026). Le gros volume reste. PaySim sort de l'entrepôt (table, staging, mart de profil). Rapport ramené de 6 à 5 pages, de 59 à 42 visuels et de 75 à 48 mesures : une page par objectif du sujet, plus la qualité. Le choc de taux, d'abord retiré, a été remis au simulateur : le sujet demande des scénarios de taux. Sécurité par filiale (RLS) ajoutée. Le rendu POC reçoit ce que le cours attend : grille de choix (5 critères + 1 Must), format, moteur et 3 optimisations, RACI, dictionnaire de 6 KPI, recette (5 tests + 1 réconciliation, GO/NOGO).
+13. Test final interrompu par une mise en veille (04/11/2026) : les calculs n'ont pas été touchés, mais le journal a révélé un défaut sans lien avec la veille. L'API de la BCE répond parfois `504`, et une filiale disparaissait alors en silence du contrôle (6/8 au lieu de 7/9). Les dépôts de janvier 2026 sont désormais conservés dans un fichier versionné.
 
 ## 8. Résultats clés (gros volume en lots de 50, vérifiés le 01/11/2026 ; le jeu versionné donne des ordres de grandeur très proches, voir docs/09 § 11)
 - Prévision quotidienne : régression calendaire championne sur 20 séries sur 20. WAPE : 12-15 % sur les décaissements, 12-28 % sur les encaissements (États-Unis 27,6 %).
@@ -153,7 +155,8 @@ Autres commandes utiles :
 - Transactions et défauts des exports : **simulés** (aucune banque ne publie ses opérations). Sont réels : dépôts, taux, change, jours fériés.
 - Hypothèses : profil intra-mensuel (paie, prélèvements), parts de marché, taux de réserve par filiale, composition des flux par zone, tickets moyens par type et facteurs de niveau de vie (`etl/generateur_flux.py`, ordres de grandeur à sourcer pour le rapport).
 - Taux BCEAO du 16/12/2022 **déduit** (`a_verifier = true`). Cameroun : 10 mois interpolés.
-- Le catalogue `marts.mart_qualite_defauts` n'est pas importé dans Power BI : il se consulte dans pgAdmin. L'ajouter demande de régénérer le `.pbip` (SDK .NET 8).
+- Le catalogue `marts.mart_qualite_defauts` n'est pas importé dans Power BI (choix d'allègement) : il se consulte dans pgAdmin. Restent aussi hors du rapport : `fct_flux_tresorerie_horaire`, `fct_taux_change`, `dim_type_transaction`.
+- RLS : testée par requêtes DAX sous chaque rôle et dans *Afficher comme rôles* (cliquer sur le nom du rôle, pas sur la case).
 - La dernière version du rapport a été écrite sans TomTool (SDK .NET absent du PC de test) : `_Mesures.tmdl` et les visuels ont été réécrits à partir de `mesures_dax.dax` et `generer_pbip.py`, puis contrôlés dans Power BI Desktop. `generer_pbip.py` en contient bien les sources, mais sa conversion par TomTool n'a pas été rejouée.
 - Parcours Docker (`docker compose up -d`) non testé sur le PC de référence.
 
@@ -161,8 +164,11 @@ Autres commandes utiles :
 - [x] Ouvrir `Cresus.pbip` sous Windows, actualiser, corriger les visuels.
 - [x] Générer le gros volume en local (`--regenerer --taille-lot 50`) et vérifier que `dbt build` reste vert.
 - [x] Régénérer le jeu versionné avec le générateur actuel (lots de 500).
-- [ ] Ajouter `mart_qualite_defauts` à la page Qualité du rapport.
-- [ ] Rapport « réponse à l'appel d'offres » (~15 pages Word) à partir de docs/01 à 08.
-- [ ] Support de soutenance (PowerPoint) ; modèles du cours : `04_IBI_SUPPORT_SOUTENANCE…pptx`, `05_IBI_MOE_POC…`.
-- [ ] Corriger la fiche d'expertise : Côte d'Ivoire = **XOF** (pas XAF) ; outil de restitution = **Power BI** (la fiche cite Tableau) ; ajouter les filiales d'Europe du Nord.
-- [ ] Valider avec le groupe le choix Power BI (le groupe parlait initialement de Tableau).
+- [x] Rendu POC (modèle `05_IBI_MOE_POC`) : `livrables/`, à renommer avec le nom du groupe.
+- [x] Support de soutenance sur le modèle du cours : `livrables/04_IBI_SUPPORT_SOUTENANCE_…pptx`.
+- [x] Rapport « réponse à l'appel d'offres » (~15 pages Word) : `livrables/IBI_AMOA_REPONSE_APPEL_OFFRES_…docx`. Le TCO et le planning reposent sur des hypothèses à valider.
+- [x] Fiche d'expertise corrigée : `livrables/03_IBI_AMOA_FICHE_EXPERTISE_…docx`.
+- [x] Webographie : `livrables/IBI_AMOA_WEBOGRAPHIE_…xlsx` (modèle Excel du cours non disponible : à reporter dessus si besoin).
+- [ ] Mettre le numéro du groupe et les noms dans les livrables, puis remplacer `GROUPE` dans le nom des fichiers.
+- [ ] Valider avec le groupe : le choix de Power BI, les notes de la grille de choix, le RACI, le TCO.
+- [ ] Confirmer auprès du professeur que le gros volume est bien demandé (consigne absente des supports du cours).

@@ -1,34 +1,6 @@
 version: 2
 
 models:
-  - name: stg_paysim__transactions
-    description: Transactions PaySim nettoyées et horodatées ; toutes les lignes, avec le drapeau est_periode_analyse (RG-QUA-02).
-    columns:
-      - name: id_transaction
-        tests: [unique, not_null]
-      - name: step_heure
-        tests:
-          - not_null
-          - entre_bornes:
-              arguments:
-                min_value: 1
-                max_value: 744
-      - name: code_type
-        tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('ref_types_transaction')
-                field: code_type
-      - name: montant_paysim
-        tests:
-          - not_null
-          - entre_bornes:
-              arguments:
-                min_value: 0
-      - name: id_client_emetteur
-        tests: [not_null]
-
   - name: stg_sab__operations
     description: Exports SAB typés et mis au format commun (aucune ligne supprimée à ce stade).
     columns:

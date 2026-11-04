@@ -4,7 +4,7 @@ Le projet est un dossier de fichiers texte que Power BI Desktop ouvre directemen
 (Fichier > Ouvrir > Cresus.pbip) :
   Cresus/Cresus.pbip                      raccourci à ouvrir
   Cresus/Cresus.SemanticModel/            modèle de données (TMDL) : tables, relations, mesures DAX
-  Cresus/Cresus.Report/                   rapport (PBIR) : 6 pages et leurs visuels
+  Cresus/Cresus.Report/                   rapport (PBIR) : 5 pages et leurs visuels
 
 Étapes :
   1. lit la structure des tables du schéma `marts` dans PostgreSQL (noms et types de colonnes) ;
@@ -41,36 +41,28 @@ V_REPORT, V_PAGE, V_VISUAL = "2.0.0", "2.0.0", "2.0.0"
 
 # Tables du schéma marts importées dans le modèle
 TABLES = [
-    "dim_date", "dim_filiale", "dim_devise", "dim_type_transaction", "dim_scenario_stress",
-    "fct_flux_tresorerie_horaire", "fct_position_tresorerie_quotidienne", "fct_taux_change",
-    "mart_exposition_change", "mart_liquidite_placement", "mart_stress_test",
-    "mart_prevision_tresorerie", "mart_prevision_change", "mart_qualite_prevision",
-    "mart_backtest_journalier", "mart_qualite_donnees", "mart_qualite_ancrage", "mart_reserve_optimale",
-    "mart_controle_a_posteriori", "mart_qualite_sources",
+    "dim_date", "dim_filiale", "dim_devise", "dim_scenario_stress",
+    "fct_position_tresorerie_quotidienne", "mart_exposition_change", "mart_liquidite_placement", "mart_stress_test",
+    "mart_prevision_tresorerie", "mart_prevision_change", "mart_backtest_journalier", "mart_qualite_ancrage",
+    "mart_reserve_optimale", "mart_controle_a_posteriori", "mart_qualite_sources",
 ]
 
 # (table « plusieurs », colonne) -> (table « un », colonne)
 RELATIONS = [
-    ("fct_flux_tresorerie_horaire", "date_operation", "dim_date", "date_jour"),
     ("fct_position_tresorerie_quotidienne", "date_position", "dim_date", "date_jour"),
-    ("fct_taux_change", "date_cours", "dim_date", "date_jour"),
     ("mart_exposition_change", "date_position", "dim_date", "date_jour"),
     ("mart_liquidite_placement", "date_position", "dim_date", "date_jour"),
     ("mart_prevision_tresorerie", "date_jour", "dim_date", "date_jour"),
     ("mart_prevision_change", "date_jour", "dim_date", "date_jour"),
     ("mart_backtest_journalier", "date_jour", "dim_date", "date_jour"),
-    ("fct_flux_tresorerie_horaire", "code_filiale", "dim_filiale", "code_filiale"),
     ("fct_position_tresorerie_quotidienne", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_liquidite_placement", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_stress_test", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_prevision_tresorerie", "code_filiale", "dim_filiale", "code_filiale"),
-    ("mart_qualite_prevision", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_backtest_journalier", "code_filiale", "dim_filiale", "code_filiale"),
     ("dim_filiale", "code_devise", "dim_devise", "code_devise"),
-    ("fct_taux_change", "code_devise", "dim_devise", "code_devise"),
     ("mart_exposition_change", "code_devise", "dim_devise", "code_devise"),
     ("mart_prevision_change", "code_devise", "dim_devise", "code_devise"),
-    ("fct_flux_tresorerie_horaire", "code_type", "dim_type_transaction", "code_type"),
     ("mart_stress_test", "code_scenario", "dim_scenario_stress", "code_scenario"),
     ("mart_qualite_ancrage", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_qualite_ancrage", "date_ancrage", "dim_date", "date_jour"),
@@ -78,6 +70,10 @@ RELATIONS = [
     ("mart_controle_a_posteriori", "code_filiale", "dim_filiale", "code_filiale"),
     ("mart_qualite_sources", "code_filiale", "dim_filiale", "code_filiale"),
 ]
+
+# Sécurité (RLS) : chaque filiale ne voit que ses lignes et sa devise ; la Direction voit tout.
+# Exemples pour le POC : en production, un rôle par filiale, alimenté par les groupes de l'annuaire.
+ROLES = {"Direction groupe": None, "Filiale France": ("FR", "EUR"), "Filiale Etats-Unis": ("US", "USD")}
 
 # Paramètres What-if : nom -> (min, max, pas, défaut)
 PARAMETRES_WHATIF = {
@@ -147,7 +143,7 @@ def colonne_tmsl(table: str, nom: str, typ: str) -> dict:
 def format_mesure(nom: str) -> str | None:
     if nom.startswith("Valeur "):
         return "0.0"
-    if nom in ("Recommandation de couverture", "Statut de résilience", "Couleur statut"):
+    if nom in ("Recommandation de couverture", "Statut de résilience"):
         return None
     if nom == "Date d'arrêté":
         return "dd/mm/yyyy"
@@ -252,16 +248,6 @@ def construire_modele(colonnes: dict) -> dict:
     })
     for nom, (mini, maxi, pas, defaut) in PARAMETRES_WHATIF.items():
         tables.append(table_whatif(nom, mini, maxi, pas, defaut))
-    tables.append({
-        "name": "Devises choquées", "lineageTag": gid("table", "Devises choquées"),
-        "columns": [{"type": "calculatedTableColumn", "name": "Cible", "dataType": "string",
-                     "isNameInferred": True, "isDataTypeInferred": True, "sourceColumn": "[Cible]",
-                     "summarizeBy": "none", "lineageTag": gid("Devises choquées", "Cible")}],
-        "partitions": [{"name": "Devises choquées", "mode": "import", "source": {
-            "type": "calculated",
-            "expression": 'DATATABLE ( "Cible", STRING, { { "Toutes devises hors EUR" }, { "USD" }, { "CAD" }, '
-                          '{ "Couronnes nordiques" }, { "Franc CFA" } } )'}}],
-    })
 
     noms = {t["name"]: {c["name"] for c in t["columns"]} for t in tables}
     relations = []
@@ -280,6 +266,9 @@ def construire_modele(colonnes: dict) -> dict:
             "dataAccessOptions": {"legacyRedirects": True, "returnErrorValuesAsNull": True},
             "tables": tables,
             "relationships": relations,
+            "roles": [{"name": nom, "modelPermission": "read", "tablePermissions": [] if filtre is None else [
+                {"name": "dim_filiale", "filterExpression": f'[code_filiale] = "{filtre[0]}"'},
+                {"name": "dim_devise", "filterExpression": f'[code_devise] = "{filtre[1]}"'}]} for nom, filtre in ROLES.items()],
             "expressions": [
                 {"name": "ServeurPostgres", "kind": "m", "lineageTag": gid("param", "serveur"),
                  "expression": '"localhost:5432" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]',
@@ -351,99 +340,70 @@ def visuel(page: str, idx: int, type_: str, x, y, l, h, titre: str, roles: dict,
     return v
 
 
-def carte(page, idx, x, y, nom, titre):
+def carte(page, idx, x, y, nom, titre, l=320, h=100):
     etiquettes = {"fontSize": lit(20)}
     if "(EUR" in nom or nom in ("Nb opérations", "Lignes brutes reçues"):   # « 5,53Md » plutôt que « 6Md »
         etiquettes["labelPrecision"] = {"expr": {"Literal": {"Value": "2L"}}}
-    return visuel(page, idx, "card", x, y, 200, 110, titre, {"Values": [mesure(nom)]},
+    return visuel(page, idx, "card", x, y, l, h, titre, {"Values": [mesure(nom)]},
                   {"labels": [{"properties": etiquettes}],
                    "categoryLabels": [{"properties": {"show": lit(False)}}]})
 
 
-def segment(page, idx, x, y, l, h, champ, titre, unique=False):
+def segment(page, idx, x, y, l, champ, titre, unique=False):
     # sans cet en-tête, qui répète le titre, la liste déroulante tient dans la hauteur du segment
     objets = {"data": [{"properties": {"mode": lit("Dropdown")}}], "header": [{"properties": {"show": lit(False)}}]}
     if unique:
         objets["selection"] = [{"properties": {"singleSelect": lit(True)}}]
-    return visuel(page, idx, "slicer", x, y, l, h, titre, {"Values": [champ]}, objets)
+    return visuel(page, idx, "slicer", x, y, l, 68, titre, {"Values": [champ]}, objets)
 
 
 def pages_rapport() -> list[tuple[str, str, list[dict]]]:
+    """Une page par objectif du sujet, plus la qualité des données."""
+    filiale = colonne("dim_filiale", "nom_filiale", "Filiale")
     p = []
-    # 1. Cockpit
+    # 1. Cockpit : arbitrer entre refinancement et placement
     n = "p1_cockpit"
-    vs = [segment(n, 1, 20, 10, 300, 60, colonne("dim_filiale", "region", "Région"), "Région"),
-          segment(n, 2, 340, 10, 300, 60, colonne("dim_filiale", "nom_filiale", "Filiale"), "Filiale"),
-          segment(n, 3, 660, 10, 300, 60, colonne("dim_date", "annee", "Année"), "Année")]
+    vs = [segment(n, 1, 20, 8, 300, filiale, "Filiale"),
+          segment(n, 2, 340, 8, 200, colonne("dim_date", "annee", "Année"), "Année")]
     kpis = [("Position de trésorerie (EUR)", "Position de trésorerie"),
             ("Ratio de couverture liquidité %", "Ratio de liquidité (LCR simplifié)"),
-            ("Jours sous 100 %", "Jours sous 100 % (filiale x jour)"),
-            ("Encours de dépôts (EUR)", "Encours de dépôts"),
+            ("Jours sous 100 %", "Jours sous 100 % (filiale × jour)"),
             ("Refinancement levé (EUR)", "Refinancement levé"),
             ("Excédent placé (EUR)", "Excédent placé"),
-            ("VaR change 95 % 10 j (EUR)", "VaR change 95 % 10 j"),
-            ("Effet de change cumulé (EUR)", "Effet de change cumulé")]
+            ("VaR change 95 % 10 j (EUR)", "VaR de change 95 % à 10 jours")]
     for i, (m, t) in enumerate(kpis):
-        vs.append(carte(n, 10 + i, 20 + (i % 4) * 310, 80 + (i // 4) * 120, m, t))
-    vs.append(visuel(n, 30, "lineChart", 20, 330, 740, 370, "Position de trésorerie par filiale (EUR)",
-                     {"Category": [colonne("dim_date", "date_jour", "Date")],
-                      "Y": [somme("fct_position_tresorerie_quotidienne", "position_cloture_eur", "Position (EUR)")],
-                      "Series": [colonne("dim_filiale", "nom_filiale", "Filiale")]}))
-    vs.append(visuel(n, 31, "tableEx", 780, 330, 480, 370, "Liquidité par filiale",
-                     {"Values": [colonne("dim_filiale", "nom_filiale", "Filiale"),
-                                 mesure("Ratio de couverture liquidité %", libelle="Ratio (date d'arrêté)"),
+        vs.append(carte(n, 10 + i, 20 + (i % 3) * 420, 84 + (i // 3) * 100, m, t, l=400, h=92))
+    vs.append(visuel(n, 30, "clusteredColumnChart", 20, 290, 620, 420, "Refinancement levé et excédent placé par mois (EUR)",
+                     {"Category": [colonne("dim_date", "annee_mois", "Mois")],
+                      "Y": [mesure("Refinancement levé (EUR)"), mesure("Excédent placé (EUR)")]}))
+    vs.append(visuel(n, 31, "tableEx", 660, 290, 600, 420, "Liquidité par filiale",
+                     {"Values": [filiale,
+                                 mesure("Ratio de couverture liquidité %", libelle="Ratio"),
                                  mesure("Jours sous 100 %", libelle="Jours < 100 %"),
                                  mesure("Refinancement levé (EUR)", libelle="Refinancement"),
                                  mesure("Excédent placé (EUR)", libelle="Placé")]}))
     p.append((n, "Cockpit DAF", vs))
 
-    # 2. Flux
-    n = "p2_flux"
-    vs = [segment(n, 1, 20, 10, 300, 60, colonne("dim_filiale", "nom_filiale", "Filiale"), "Filiale"),
-          segment(n, 2, 340, 10, 200, 60, colonne("dim_date", "annee", "Année"), "Année"),
-          carte(n, 3, 560, 10, "Solde net quotidien moyen (EUR)", "Solde net quotidien moyen"),
-          carte(n, 4, 780, 10, "Nb opérations", "Nombre d'opérations"),
-          carte(n, 5, 1000, 10, "Part des gros décaissements %", "Part des gros décaissements (≥ 10 k€)"),
-          visuel(n, 10, "clusteredColumnChart", 20, 140, 740, 280, "Encaissements et décaissements par mois (EUR)",
-                 {"Category": [colonne("dim_date", "annee_mois", "Mois")],
-                  "Y": [mesure("Encaissements (EUR)"), mesure("Décaissements (EUR)")]}),
-          visuel(n, 11, "clusteredColumnChart", 20, 430, 740, 270,
-                 "Opérations de trésorerie de fin de mois : refinancement levé / excédent placé (EUR)",
-                 {"Category": [colonne("dim_date", "annee_mois", "Mois")],
-                  "Y": [mesure("Refinancement levé (EUR)"), mesure("Excédent placé (EUR)")]}),
-          visuel(n, 12, "clusteredBarChart", 780, 140, 480, 280, "Décaissements par type d'opération (EUR)",
-                 {"Category": [colonne("dim_type_transaction", "libelle_type", "Type")],
-                  "Y": [mesure("Décaissements (EUR)")]}),
-          visuel(n, 13, "clusteredColumnChart", 780, 430, 480, 270, "Profil horaire du solde net (EUR)",
-                 {"Category": [colonne("fct_flux_tresorerie_horaire", "heure", "Heure")],
-                  "Y": [mesure("Solde net (EUR)")]})]
-    p.append((n, "Flux de trésorerie", vs))
-
-    # 3. Prévisions
-    n = "p3_prevision"
-    vs = [segment(n, 1, 20, 10, 240, 60, colonne("dim_filiale", "nom_filiale", "Filiale"), "Filiale"),
-          carte(n, 2, 280, 10, "Probabilité de passer sous le besoin de liquidité %", "Proba. de passer sous 100 % (mois prévu)"),
-          carte(n, 3, 530, 10, "WAPE du modèle champion %", "Erreur du champion (WAPE, backtest)"),
-          carte(n, 4, 780, 10, "Couverture de l'intervalle à 90 % %", "Contrôle réel janv. 2026 : dans la fourchette"),
-          carte(n, 5, 1030, 10, "Erreur médiane absolue sur les dépôts %", "Contrôle réel janv. 2026 : erreur médiane"),
-          visuel(n, 10, "lineChart", 20, 130, 620, 290, "Position réalisée puis prévue : P5 / P50 / P95 (EUR)",
+    # 2. Prévisions : anticiper les entrées et sorties de cash
+    n = "p2_prevision"
+    vs = [segment(n, 1, 20, 8, 240, filiale, "Filiale"),
+          carte(n, 2, 280, 8, "Probabilité de passer sous le besoin de liquidité %", "Proba. de passer sous 100 %"),
+          carte(n, 3, 610, 8, "WAPE du modèle champion %", "Erreur de prévision (WAPE)"),
+          carte(n, 4, 940, 8, "Couverture de l'intervalle à 90 % %", "Janvier 2026 dans la fourchette"),
+          visuel(n, 10, "lineChart", 20, 120, 620, 290, "Position réalisée puis prévue : P5 / P50 / P95 (EUR)",
                  {"Category": [colonne("mart_prevision_tresorerie", "date_jour", "Date")],
                   "Y": [mesure("Position prévue P05 (EUR)", libelle="P5 (pessimiste)"),
                         mesure("Position prévue P50 (EUR)", libelle="P50 (médiane)"),
                         mesure("Position prévue P95 (EUR)", libelle="P95 (optimiste)")]}),
-          visuel(n, 11, "tableEx", 660, 130, 600, 290, "Backtest : précision des modèles (3 origines, horizon 1 mois)",
-                 {"Values": [colonne("mart_qualite_prevision", "code_filiale", "Filiale"),
-                             colonne("mart_qualite_prevision", "serie", "Série"),
-                             colonne("mart_qualite_prevision", "modele", "Modèle"),
-                             colonne("mart_qualite_prevision", "est_champion", "Champion"),
-                             colonne("mart_qualite_prevision", "wape_pct", "WAPE %")]}),
-          visuel(n, 12, "tableEx", 20, 430, 620, 270, "Réserve requise (P99) pour le mois prévu vs réserve actuelle",
-                 {"Values": [colonne("dim_filiale", "nom_filiale", "Filiale"),
-                             colonne("mart_reserve_optimale", "taux_reserve_actuel_pct", "Réserve actuelle %"),
-                             colonne("mart_reserve_optimale", "reserve_requise_p99_pct", "Réserve requise %"),
-                             colonne("mart_reserve_optimale", "liquidite_liberable_eur", "Libérable (+) / à lever (-)"),
-                             colonne("mart_reserve_optimale", "diagnostic", "Diagnostic")]}),
-          visuel(n, 13, "tableEx", 660, 430, 600, 270, "Contrôle a posteriori : dépôts réels au 31/01/2026 vs prévus",
+          visuel(n, 11, "clusteredColumnChart", 660, 120, 600, 290, "Encaissements et décaissements par mois (EUR)",
+                 {"Category": [colonne("dim_date", "annee_mois", "Mois")],
+                  "Y": [mesure("Encaissements (EUR)"), mesure("Décaissements (EUR)")]}),
+          visuel(n, 12, "tableEx", 20, 420, 620, 290, "Réserve requise (P99) pour le mois prévu vs réserve actuelle",
+                 {"Values": [filiale,
+                             colonne("mart_reserve_optimale", "taux_reserve_actuel_pct", "Actuelle %"),
+                             colonne("mart_reserve_optimale", "reserve_requise_p99_pct", "Requise %"),
+                             colonne("mart_reserve_optimale", "liquidite_liberable_eur", "Libérable (+) / à lever (-)")]}),
+          visuel(n, 13, "tableEx", 660, 420, 600, 290, "Contrôle : dépôts réels au 31/01/2026 vs prévus",
                  {"Values": [colonne("mart_controle_a_posteriori", "code_filiale", "Filiale"),
                              colonne("mart_controle_a_posteriori", "depots_reels_devise", "Réel"),
                              colonne("mart_controle_a_posteriori", "depots_p50_devise", "Prévu P50"),
@@ -451,48 +411,46 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
                              colonne("mart_controle_a_posteriori", "dans_intervalle_90", "Dans [P5 ; P95]")]})]
     p.append((n, "Prévisions", vs))
 
-    # 4. Change & couverture
-    n = "p4_change"
-    vs = [segment(n, 1, 20, 10, 300, 60, colonne("dim_devise", "code_devise", "Devise"), "Devise"),
-          carte(n, 2, 340, 10, "Exposition au change (EUR)", "Exposition au change"),
-          carte(n, 3, 560, 10, "Part de la position en devises %", "Part de la position en devises"),
-          carte(n, 4, 780, 10, "VaR change 95 % 10 j (EUR)", "VaR 95 % 10 j"),
-          carte(n, 5, 1000, 10, "Coût annuel de couverture de change (EUR)", "Coût annuel si tout est couvert"),
-          visuel(n, 10, "lineChart", 20, 140, 620, 560,
-                 "1 EUR en devise : historique, fourchette prévue et réalisé (USD si aucune devise choisie)",
+    # 3. Change : élaborer la stratégie de couverture
+    n = "p3_change"
+    vs = [segment(n, 1, 20, 8, 240, colonne("dim_devise", "code_devise", "Devise"), "Devise"),
+          carte(n, 2, 280, 8, "Exposition au change (EUR)", "Exposition au change"),
+          carte(n, 3, 610, 8, "VaR change 95 % 10 j (EUR)", "VaR 95 % à 10 jours"),
+          carte(n, 4, 940, 8, "Coût annuel de couverture de change (EUR)", "Coût annuel de couverture"),
+          visuel(n, 10, "lineChart", 20, 120, 490, 590,
+                 "1 EUR en devise : prévu vs réalisé (défaut USD)",
                  {"Category": [colonne("mart_prevision_change", "date_jour", "Date")],
                   "Y": [mesure("Taux de change prévu P05", libelle="P5"),
                         mesure("Taux de change prévu P50", libelle="P50"),
                         mesure("Taux de change prévu P95", libelle="P95"),
                         mesure("Taux de change réalisé", libelle="Réalisé")]}),
-          visuel(n, 11, "tableEx", 660, 140, 600, 300, "Décision de couverture par devise",
+          visuel(n, 11, "tableEx", 530, 120, 730, 320, "Décision de couverture par devise",
                  {"Values": [colonne("dim_devise", "code_devise", "Devise"),
                              mesure("Exposition au change (EUR)", libelle="Exposition"),
                              mesure("VaR change 95 % 10 j (EUR)", libelle="VaR 10 j"),
                              mesure("Rapport coût / risque de la couverture", libelle="Coût / risque"),
                              mesure("Recommandation de couverture", libelle="Recommandation")]}),
-          visuel(n, 12, "clusteredBarChart", 660, 450, 600, 250, "Effet de change cumulé par devise (EUR)",
+          visuel(n, 12, "clusteredBarChart", 530, 450, 730, 260, "Effet de change cumulé par devise (EUR)",
                  {"Category": [colonne("dim_devise", "code_devise", "Devise")],
                   "Y": [mesure("Effet de change cumulé (EUR)")]})]
     p.append((n, "Change & couverture", vs))
 
-    # 5. Simulateur de stress
-    n = "p5_stress"
-    vs = [segment(n, 1, 20, 10, 240, 60, colonne("Choc retraits %", "Choc retraits %"), "Choc de retraits (% des dépôts)", True),
-          segment(n, 2, 270, 10, 240, 60, colonne("Choc change %", "Choc change %"), "Choc de change (%)", True),
-          segment(n, 3, 520, 10, 240, 60, colonne("Devises choquées", "Cible"), "Devises choquées", True),
-          segment(n, 4, 770, 10, 240, 60, colonne("Multiplicateur sorties", "Multiplicateur sorties"), "Multiplicateur des sorties", True),
-          segment(n, 5, 1020, 10, 240, 60, colonne("Choc taux (pb)", "Choc taux (pb)"), "Choc de taux (pb)", True),
-          carte(n, 6, 20, 80, "Position stressée (EUR)", "Position stressée"),
-          carte(n, 7, 330, 80, "Horizon de survie (jours)", "Horizon de survie (jours)"),
-          carte(n, 8, 640, 80, "Besoin de refinancement stressé (EUR)", "Besoin de refinancement"),
-          carte(n, 9, 950, 80, "Coût du refinancement stressé (EUR/an)", "Coût du refinancement / an"),
-          visuel(n, 10, "tableEx", 20, 200, 560, 500, "Simulation par filiale",
-                 {"Values": [colonne("dim_filiale", "nom_filiale", "Filiale"),
-                             mesure("Position stressée (EUR)", libelle="Position stressée"),
-                             mesure("Horizon de survie (jours)", libelle="Survie (jours)"),
+    # 4. Stress : projeter des scénarios de crise
+    n = "p4_stress"
+    vs = [segment(n, 1, 20, 8, 295, colonne("Choc retraits %", "Choc retraits %"), "Retraits (% des dépôts)", True),
+          segment(n, 2, 335, 8, 295, colonne("Choc change %", "Choc change %"), "Change (%, hors EUR)", True),
+          segment(n, 3, 650, 8, 295, colonne("Multiplicateur sorties", "Multiplicateur sorties"), "Multiplicateur des sorties", True),
+          segment(n, 7, 965, 8, 295, colonne("Choc taux (pb)", "Choc taux (pb)"), "Taux (points de base)", True),
+          carte(n, 4, 20, 84, "Position stressée (EUR)", "Position stressée", l=295, h=92),
+          carte(n, 5, 335, 84, "Horizon de survie (jours)", "Survie (vide = sans limite)", l=295, h=92),
+          carte(n, 6, 650, 84, "Besoin de refinancement stressé (EUR)", "Besoin de refinancement", l=295, h=92),
+          carte(n, 8, 965, 84, "Coût du refinancement stressé (EUR/an)", "Coût annuel du besoin", l=295, h=92),
+          visuel(n, 10, "tableEx", 20, 190, 440, 520, "Simulation par filiale",
+                 {"Values": [filiale,
+                             mesure("Position stressée (EUR)", libelle="Position"),
+                             mesure("Horizon de survie (jours)", libelle="Survie (j)"),
                              mesure("Statut de résilience", libelle="Statut")]}),
-          visuel(n, 11, "pivotTable", 600, 200, 660, 500, "Scénarios historiques : horizon de survie (jours)",
+          visuel(n, 11, "pivotTable", 480, 190, 780, 520, "Scénarios historiques : horizon de survie (jours)",
                  {"Rows": [colonne("dim_scenario_stress", "libelle_scenario", "Scénario")],
                   "Columns": [colonne("dim_filiale", "code_filiale", "Filiale")],
                   "Values": [somme("mart_stress_test", "horizon_survie_jours", "Jours")]},
@@ -500,34 +458,22 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
                  {"subTotals": [{"properties": {"rowSubtotals": lit(False), "columnSubtotals": lit(False)}}]})]
     p.append((n, "Simulateur de stress", vs))
 
-    # 6. Qualité et fiabilité des données
-    n = "p6_qualite"
-    vs = [segment(n, 1, 20, 10, 240, 60, colonne("dim_filiale", "nom_filiale", "Filiale"), "Filiale"),
-          carte(n, 2, 280, 10, "Lignes brutes reçues", "Lignes brutes reçues des filiales"),
-          carte(n, 3, 530, 10, "Taux de rejet %", "Taux de rejet (doublons, annulations...)"),
-          carte(n, 4, 780, 10, "Rejets inattendus", "Rejets inattendus (à corriger)"),
-          carte(n, 5, 1030, 10, "Écart max à l'encours réel %", "Écart max à l'encours réel publié"),
-          visuel(n, 10, "clusteredBarChart", 20, 130, 620, 280,
-                 "Défauts des exports bruts détectés et corrigés par l'ETL, par système source",
+    # 5. Qualité : prouver que les chiffres sont fiables
+    n = "p5_qualite"
+    vs = [segment(n, 1, 20, 8, 240, filiale, "Filiale"),
+          carte(n, 2, 280, 8, "Lignes brutes reçues", "Lignes brutes reçues", l=230),
+          carte(n, 3, 530, 8, "Taux de rejet %", "Taux de rejet", l=230),
+          carte(n, 4, 780, 8, "Rejets inattendus", "Rejets inattendus", l=230),
+          carte(n, 5, 1030, 8, "Écart max à l'encours réel %", "Écart à l'encours réel", l=230),
+          visuel(n, 10, "clusteredBarChart", 20, 120, 620, 590, "Défauts détectés et corrigés par l'ETL, par système source",
                  {"Category": [colonne("mart_qualite_sources", "systeme_source", "Système source")],
                   "Y": [mesure("Doublons supprimés"), mesure("Libellés corrigés"), mesure("Devises corrigées"),
                         mesure("Opérations annulées, tests et extournes écartés")]}),
-          visuel(n, 11, "lineChart", 20, 420, 620, 280,
-                 "Encours de dépôts en devise locale : réel publié vs reconstitué (France si aucune filiale choisie)",
+          visuel(n, 11, "lineChart", 660, 120, 600, 590,
+                 "Encours de dépôts : réel vs reconstitué (défaut : France)",
                  {"Category": [colonne("mart_qualite_ancrage", "date_ancrage", "Date de publication")],
                   "Y": [mesure("Encours réel publié (devise)", libelle="Réel (banque centrale)"),
-                        mesure("Encours reconstitué (devise)", libelle="Reconstitué")]}),
-          visuel(n, 12, "tableEx", 660, 130, 600, 280, "Qualité des exports par filiale",
-                 {"Values": [colonne("dim_filiale", "nom_filiale", "Filiale"),
-                             mesure("Lignes brutes reçues", libelle="Lignes brutes"),
-                             mesure("Lignes retenues après nettoyage", libelle="Retenues"),
-                             mesure("Taux de rejet %", libelle="Rejet %"),
-                             mesure("Doublons supprimés", libelle="Doublons")]}),
-          visuel(n, 13, "clusteredColumnChart", 660, 420, 600, 280,
-                 "PaySim (texture des opérations) : transactions par jour, retenus / exclus",
-                 {"Category": [colonne("mart_qualite_donnees", "jour_simulation", "Jour")],
-                  "Y": [somme("mart_qualite_donnees", "nb_transactions", "Transactions")],
-                  "Series": [colonne("mart_qualite_donnees", "statut", "Statut")]})]
+                        mesure("Encours reconstitué (devise)", libelle="Reconstitué")]})]
     p.append((n, "Qualité des données", vs))
     return p
 

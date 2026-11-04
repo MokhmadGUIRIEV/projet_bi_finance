@@ -12,7 +12,7 @@
 | Prédictif | `ml` | tables | Python `etl/prevision.py` |
 
 Ordonnancement (`pipeline.py`) : `extract → load → dbt build (hors prévision) → prévision Python → dbt build (tag prevision)`.
-Le pipeline est **rejouable** : les tables brutes sont vidées puis rechargées, et dbt reconstruit tout. Durée mesurée : environ 3 min (2,8 M de lignes de flux sur 3 ans + 6,4 M de lignes PaySim).
+Le pipeline est **rejouable** : un fichier inchangé est ignoré (empreinte MD5), un fichier modifié est rechargé, un fichier absent du dossier actif est retiré de `raw`. Durée mesurée : ~6 min pour le jeu versionné (4,3 M de lignes brutes), ~1 h 10 pour le gros volume (42,7 M de lignes).
 
 ## 2. Règles de gestion
 
@@ -30,7 +30,7 @@ Les règles de **nettoyage des exports bruts** (RG-NET-01 à 11), le dictionnair
 | RG-VAL-02 | Contre-valeur EUR = montant devise / cours BCE du jour | idem |
 | RG-SEN-01 | CASH_IN = +1 ; CASH_OUT, DEBIT, PAYMENT, TRANSFER (émetteur) = −1 | `ref_types_transaction` |
 | RG-QUA-01 | Transactions de montant nul exclues | idem |
-| RG-QUA-02 | Seule la fenêtre d'activité stable de PaySim (steps 121 à 408 = jours 6 à 17) sert de « texture » | `etl/generateur_flux.py`, `stg_paysim__transactions` (drapeau) |
+| RG-QUA-02 | Seule la fenêtre d'activité stable de PaySim (steps 121 à 408 = jours 6 à 17) sert de « texture » | `etl/generateur_flux.py` |
 | RG-POS-01 (v2) | Encours initial = encours réel au 31/12/2022 × part de marché (la v1 utilisait les soldes PaySim, jugés peu fiables) | `int_encours_initial` |
 | RG-POS-02 | Réserve initiale = encours × taux de réserve de la filiale | idem |
 | RG-POS-04 | Encours de dépôts = encours initial + cumul des flux nets | `fct_position_tresorerie_quotidienne` |
@@ -41,7 +41,7 @@ Les règles de **nettoyage des exports bruts** (RG-NET-01 à 11), le dictionnair
 | RG-RIS-02/03 | VaR 95 % = 1,645 × vol. quotidienne × exposition ; 10 j = × √10 | `mart_exposition_change` |
 | RG-LIQ-01 (v2) | Besoin 30 j = 10 % des dépôts (Bâle III). La v1 y ajoutait la tendance des flux : double comptage, ratio figé sous 100 % | `mart_liquidite_placement` |
 | RG-LIQ-02..04 | Ratio = position / besoin ; excédent / déficit par rapport à la cible de pilotage de 110 % → gain au taux directeur / coût au taux + 0,5 pt | idem |
-| RG-LIQ-05 | Consommation quotidienne = − flux net moyen 7 j / position | idem |
+| RG-LIQ-05 | Consommation quotidienne = − flux net moyen 30 j / position | idem |
 | RG-LIQ-06 | Jours avant 100 % = (position − besoin) / sortie nette moyenne | idem |
 | RG-COU-02 | Rapport coût / risque de la couverture = (taux local − taux BCE) / volatilité ; recommandation par devise | `mart_exposition_change` |
 | RG-COU-01 | Coût de couverture ≈ exposition × (taux local − taux BCE) (parité des taux d'intérêt) | idem |
@@ -63,24 +63,24 @@ Toutes les hypothèses numériques sont des **variables dbt** (`dbt_project.yml`
 | flux_net_devise, flux_net_eur | Encaissements − décaissements |
 
 ### fct_position_tresorerie_quotidienne — grain : jour × filiale (semi-additive)
-Flux du jour, `cible_reserve_mois_devise`, `position_ouverture_devise`, `position_cloture_devise`, `operation_tresorerie_devise/_eur` (fin de mois), `encours_reel_publie_devise`, `position_cloture_eur`, `position_cloture_eur_taux_constant`, `effet_change_eur`, `encours_depots_*`, `taux_eur_jour`, `decaissements_frauduleux_eur`, `flux_net_intragroupe_eur`.
+Flux du jour, `cible_reserve_mois_devise`, `position_ouverture_devise`, `position_cloture_devise`, `operation_tresorerie_devise/_eur` (fin de mois), `encours_reel_publie_devise`, `position_cloture_eur`, `position_cloture_eur_taux_constant`, `effet_change_eur`, `encours_depots_*`, `taux_eur_jour`, `decaissements_frauduleux_eur`, `decaissements_gros_tickets_eur`.
 
 ### fct_taux_change — grain : jour × devise
 `taux_eur` (unités pour 1 €), `valeur_eur_par_unite`, `est_taux_publie`, `jours_depuis_publication`, `variation_jour_pct`, `volatilite_annualisee_pct`, `est_rupture_serie`.
 
 ### Tables d'analyse
-`mart_exposition_change` (jour × devise), `mart_liquidite_placement` (jour × filiale), `mart_stress_test` (scénario × filiale), `mart_qualite_ancrage` (réel publié vs reconstitué), `mart_qualite_donnees` (profil PaySim), `mart_prevision_tresorerie`, `mart_prevision_change`, `mart_qualite_prevision`, `mart_backtest_journalier`, `mart_reserve_optimale` (réserve requise P99), `mart_controle_a_posteriori` (prévision vs dépôts réels de janvier 2026).
+`mart_exposition_change` (jour × devise), `mart_liquidite_placement` (jour × filiale), `mart_stress_test` (scénario × filiale), `mart_qualite_ancrage` (réel publié vs reconstitué), `mart_prevision_tresorerie`, `mart_prevision_change`, `mart_backtest_journalier`, `mart_reserve_optimale` (réserve requise P99), `mart_controle_a_posteriori` (prévision vs dépôts réels de janvier 2026).
 
 Le dictionnaire complet et le graphe de lignage s'obtiennent avec `dbt docs generate && dbt docs serve`.
 
-## 4. Plan de tests (116 tests dbt)
+## 4. Plan de tests (97 tests dbt)
 
 | Famille | Exemples |
 |---|---|
 | Structure | `unique` / `not_null` sur toutes les clés |
 | Intégrité référentielle | faits → `dim_date`, `dim_filiale`, `dim_type_transaction` |
-| Domaines de valeurs | types PaySim, sens ±1, statuts de résilience, bornes du step et des montants |
+| Domaines de valeurs | types d'opération, sens ±1, statuts de résilience, bornes des montants |
 | ETL | complétude des fichiers (lignes et totaux de contrôle) ; **rapprochement comptable jour par jour** (10 960 jours-filiales) ; unicité des opérations nettoyées ; alerte sur rejets inattendus |
 | Métier | **ancrage : encours reconstitué = encours réel publié à chaque date (481 dates contrôlées)** ; conservation des volumes (aucune ligne perdue) ; taux disponibles sur toute la période |
 | Restitution | faits incrémentaux à jour par rapport à leur source (`assert_fct_flux_a_jour`) ; aucune colonne `numeric` dans les marts, que Power BI ne saurait pas lire (`assert_marts_sans_numeric`) |
-| Alertes (non bloquantes) | rupture de série de change (RUB) ; jour atypique dans la fenêtre d'analyse ; vraisemblance de l'encours (décaissements / dépôts entre 0,05 % et 5 % par jour) ; fraîcheur des cours BCE (> 10 jours) |
+| Alertes (non bloquantes) | rupture de série de change (RUB) ; vraisemblance de l'encours (décaissements / dépôts entre 0,05 % et 5 % par jour) ; fraîcheur des cours BCE (> 10 jours) |

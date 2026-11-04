@@ -3,10 +3,10 @@
   "name": "344a04c26f12d8ba0d52",
   "position": {
     "x": 20,
-    "y": 10,
+    "y": 8,
     "z": 1000,
     "width": 300,
-    "height": 60,
+    "height": 68,
     "tabOrder": 1000
   },
   "visual": {
@@ -23,12 +23,12 @@
                       "Entity": "dim_filiale"
                     }
                   },
-                  "Property": "region"
+                  "Property": "nom_filiale"
                 }
               },
-              "queryRef": "dim_filiale.region",
-              "nativeQueryRef": "region",
-              "displayName": "Région"
+              "queryRef": "dim_filiale.nom_filiale",
+              "nativeQueryRef": "nom_filiale",
+              "displayName": "Filiale"
             }
           ]
         }
@@ -48,7 +48,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Région'"
+                  "Value": "'Filiale'"
                 }
               }
             }

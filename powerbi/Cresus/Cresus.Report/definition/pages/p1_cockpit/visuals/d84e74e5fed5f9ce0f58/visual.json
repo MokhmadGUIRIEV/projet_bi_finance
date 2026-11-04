@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "d84e74e5fed5f9ce0f58",
   "position": {
-    "x": 780,
-    "y": 330,
+    "x": 660,
+    "y": 290,
     "z": 31000,
-    "width": 480,
-    "height": 370,
+    "width": 600,
+    "height": 420,
     "tabOrder": 31000
   },
   "visual": {
@@ -43,7 +43,7 @@
               },
               "queryRef": "_Mesures.Ratio de couverture liquidité %",
               "nativeQueryRef": "Ratio de couverture liquidité %",
-              "displayName": "Ratio (date d'arrêté)"
+              "displayName": "Ratio"
             },
             {
               "field": {

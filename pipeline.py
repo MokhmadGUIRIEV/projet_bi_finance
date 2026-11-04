@@ -1,7 +1,7 @@
-"""Orchestrateur du POC Crésus : python pipeline.py [--demo] [--etapes ...]
+"""Orchestrateur du POC Crésus : python pipeline.py [--etapes ...]
 
 Étapes (dans l'ordre) :
-  extract   : cours BCE (Webstat), séries réelles des banques centrales (cache data/sources/), PaySim si présent
+  extract   : cours BCE (Webstat), séries réelles des banques centrales (cache data/sources/)
   generer   : OPTIONNELLE (--regenerer) : reconstruit les exports bruts des filiales (data/sources_internes/,
               versionnés dans Git) à partir des dépôts réels et de PaySim
   load      : charge les exports bruts tels quels dans le schéma raw de PostgreSQL (incrémental, idempotent)
@@ -10,10 +10,9 @@
   dbt_prev  : marts de prévision (dbt) qui exploitent les sorties du schéma ml + tests
 
 Exemples :
-  python pipeline.py                  # tout, à partir des fichiers versionnés (PaySim facultatif)
+  python pipeline.py                  # tout, à partir des fichiers versionnés
   python pipeline.py --regenerer      # reconstruit aussi les exports bruts (nécessite PaySim)
   python pipeline.py --regenerer --taille-lot 50   # gros volume local : ~43 M de lignes, ~20 Go
-  python pipeline.py --demo           # texture PaySim synthétique (test hors Kaggle) ; séries réelles conservées
   python pipeline.py --etapes dbt prevision dbt_prev
 """
 from __future__ import annotations
@@ -48,8 +47,6 @@ def executer_dbt(*arguments: str, bloquant: bool = True) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--demo", action="store_true", help="transactions synthétiques au format PaySim (les taux restent réels)")
-    parser.add_argument("--demo-lignes", type=int, default=200_000, help="taille du jeu synthétique")
     parser.add_argument("--etapes", nargs="+", choices=ETAPES, default=None)
     parser.add_argument("--regenerer", action="store_true", help="reconstruire les exports bruts des filiales")
     parser.add_argument("--taille-lot", type=int, default=TAILLE_LOT_VERSIONNEE,
@@ -64,48 +61,28 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-7s %(message)s", datefmt="%H:%M:%S")
     debut = time.time()
 
-    fichier_paysim = fichier_taux = None
+    from etl.extraction_bce import FICHIER_SORTIE
+    fichier_taux = FICHIER_SORTIE
     if "extract" in args.etapes:
         log.info("=== 1. EXTRACT ===")
         from etl.extraction_bce import extraire_taux_bce
-        if args.demo:
-            from etl.donnees_demo import generer_jeu_demo
-            fichier_paysim = generer_jeu_demo(args.demo_lignes)
-        elif args.regenerer:
-            from etl.extraction_paysim import extraire_paysim
-            fichier_paysim = extraire_paysim()   # indispensable pour reconstruire les exports
-        else:
-            from etl.extraction_paysim import trouver_fichier_paysim
-            fichier_paysim = trouver_fichier_paysim()   # facultatif : sert à la page Qualité
-            if fichier_paysim is None:
-                log.info("PaySim absent : facultatif (seule la page « Qualité » sur PaySim restera vide).")
-        fichier_taux = extraire_taux_bce()
         from etl.sources_reelles import assurer_cache
+        fichier_taux = extraire_taux_bce()
         assurer_cache()
-
-    if fichier_paysim is None:  # étape extract sautée : on reprend les fichiers existants
-        from etl.config import DOSSIER_DEMO
-        from etl.extraction_bce import FICHIER_SORTIE
-        from etl.extraction_paysim import trouver_fichier_paysim
-        fichier_paysim = DOSSIER_DEMO / "paysim_demo.csv" if args.demo else trouver_fichier_paysim()
-        fichier_taux = FICHIER_SORTIE
 
     if "generer" in args.etapes:
         log.info("=== 2. RECONSTRUCTION DES EXPORTS BRUTS DES FILIALES ===")
+        from etl.extraction_paysim import extraire_paysim
         from etl.generateur_flux import generer
-        if fichier_paysim is None:
-            raise SystemExit("--regenerer nécessite PaySim dans data/raw/ (voir README).")
-        args.sources = generer(fichier_paysim, taille_lot=args.taille_lot, dossier=args.sources)
+        args.sources = generer(extraire_paysim(), taille_lot=args.taille_lot, dossier=args.sources)
         if args.taille_lot != TAILLE_LOT_VERSIONNEE:
             log.info("Pour les prochains lancements, ajouter dans .env : DOSSIER_SOURCES_INTERNES=%s", args.sources)
 
     if "load" in args.etapes:
         log.info("=== 3. LOAD (PostgreSQL, schéma raw) ===")
-        from etl.chargement_raw import charger_paysim, charger_taux_bce, creer_schema_raw
+        from etl.chargement_raw import charger_taux_bce, creer_schema_raw
         from etl.chargement_sources_internes import charger_exports_bruts
         creer_schema_raw()
-        if fichier_paysim is not None and fichier_paysim.exists():
-            charger_paysim(fichier_paysim)
         charger_taux_bce(fichier_taux)
         charger_exports_bruts(args.sources or DOSSIER_SOURCES_INTERNES_ACTIF)
 
@@ -124,7 +101,7 @@ def main() -> None:
         try:
             from etl.controle_a_posteriori import controler
             controler()
-        except Exception as exc:          # sans Internet : on continue sans ce contrôle
+        except Exception as exc:          # filet de sécurité : ce contrôle ne bloque pas le pipeline
             log.warning("Contrôle a posteriori ignoré : %s", exc)
 
     if "dbt_prev" in args.etapes:

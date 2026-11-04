@@ -15,13 +15,6 @@ vars:
   # banques centrales (etl/generateur_flux.py, docs/07_donnees_3_ans.md).
   date_debut_analyse: "2023-01-01"
   date_fin_analyse: "2025-12-31"
-  # --- PaySim : utilisé comme « texture » des opérations (types, montants, heures, fraude).
-  # Seule sa fenêtre d'activité stable est échantillonnée : jours 6 à 17 = steps 121 à 408 (RG-QUA-02).
-  # date_debut_paysim sert uniquement à dater les steps dans la page « Qualité des données ».
-  step_debut_analyse: 121
-  step_fin_analyse: 408
-  date_debut_paysim: "2025-09-01"
-  valeur_unite_paysim_eur: 0.01
   # Profondeur d'historique de change conservée (calcul de volatilité).
   annees_historique_change: 3
   # Report maximal (jours) d'un taux non publié (week-end, jour férié). Au-delà : rupture de série.

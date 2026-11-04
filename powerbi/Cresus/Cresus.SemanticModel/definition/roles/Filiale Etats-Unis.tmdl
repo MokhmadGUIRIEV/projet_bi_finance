@@ -1,0 +1,7 @@
+role 'Filiale Etats-Unis'
+	modelPermission: read
+
+	tablePermission dim_filiale = [code_filiale] = "US"
+
+	tablePermission dim_devise = [code_devise] = "USD"
+

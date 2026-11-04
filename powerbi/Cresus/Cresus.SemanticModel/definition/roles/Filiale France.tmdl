@@ -1,0 +1,7 @@
+role 'Filiale France'
+	modelPermission: read
+
+	tablePermission dim_filiale = [code_filiale] = "FR"
+
+	tablePermission dim_devise = [code_devise] = "EUR"
+

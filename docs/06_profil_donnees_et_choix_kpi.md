@@ -30,11 +30,11 @@ Problèmes de fond trouvés en plus par la revue manuelle, plus graves que ceux 
 1. Le backtest portait sur les jours « morts » (28-30) : erreur WAPE de 74 % pour le modèle naïf et de 902 559 % pour Holt-Winters. **Corrigé** par la fenêtre d'analyse : WAPE de 3,5 à 7,7 %, biais de +2,5 %.
 2. Le stress test calculait ses moyennes sur la période morte (600 à 1 800 jours de survie). **Corrigé** : 30 à 63 jours dans le scénario central.
 3. Holt-Winters diverge sur 4 séries sur 20. **Garde-fou ajouté** : le modèle est écarté (WAPE NULL) au lieu d'afficher une erreur absurde.
-4. Nouveaux contrôles : `mart_qualite_donnees` (jours retenus ou exclus et pourquoi), alerte de régime d'activité, alerte de vraisemblance de l'encours.
+4. Nouveaux contrôles à ce stade : profil de PaySim par jour, alerte de régime d'activité, alerte de vraisemblance de l'encours. Les deux premiers ont été retirés ensuite : PaySim n'est plus chargé dans l'entrepôt.
 
 ## 3. Évaluation des KPI (skill `data:statistical-analysis`)
 
-Période : 01/09 → 12/09/2025 (jours 6 à 17 de PaySim), 10 filiales, soit 120 observations filiale × jour.
+Évaluation réalisée sur la première version du POC (avant le passage à 3 ans, docs/07) : 01/09 → 12/09/2025 (jours 6 à 17 de PaySim), 10 filiales, soit 120 observations filiale × jour.
 
 | KPI | Ce que disent les données | Verdict |
 |---|---|---|

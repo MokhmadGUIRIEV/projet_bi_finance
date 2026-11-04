@@ -1,8 +1,6 @@
 """Étape LOAD : chargement des fichiers bruts dans PostgreSQL (schéma raw).
 
-On utilise la commande COPY de PostgreSQL (chargement en flux) : c'est de loin la
-méthode la plus rapide pour les 6,3 millions de lignes de PaySim (~1 à 2 min),
-là où un INSERT ligne à ligne prendrait des heures.
+On utilise la commande COPY de PostgreSQL (chargement en flux) : c'est de loin la méthode la plus rapide.
 """
 from __future__ import annotations
 
@@ -15,11 +13,6 @@ from .db import connexion
 
 log = logging.getLogger(__name__)
 TAILLE_BLOC = 8 * 1024 * 1024
-
-COLONNES_PAYSIM = (
-    "step, type, amount, name_orig, old_balance_orig, new_balance_orig, "
-    "name_dest, old_balance_dest, new_balance_dest, is_fraud, is_flagged_fraud"
-)
 
 
 def creer_schema_raw() -> None:
@@ -40,10 +33,6 @@ def _copier(fichier: Path, table: str, colonnes: str) -> int:
         cur.execute(f"analyze {table}")
     log.info("%s : %s lignes chargées en %.1f s", table, f"{nb:,}".replace(",", " "), time.time() - debut)
     return nb
-
-
-def charger_paysim(fichier: Path) -> int:
-    return _copier(fichier, "raw.paysim_transactions", COLONNES_PAYSIM)
 
 
 def charger_taux_bce(fichier: Path) -> int:

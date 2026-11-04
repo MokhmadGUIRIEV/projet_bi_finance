@@ -3,14 +3,14 @@
   "name": "0c23c50ffbcd70711c32",
   "position": {
     "x": 20,
-    "y": 330,
+    "y": 290,
     "z": 30000,
-    "width": 740,
-    "height": 370,
+    "width": 620,
+    "height": 420,
     "tabOrder": 30000
   },
   "visual": {
-    "visualType": "lineChart",
+    "visualType": "clusteredColumnChart",
     "query": {
       "queryState": {
         "Category": {
@@ -23,12 +23,12 @@
                       "Entity": "dim_date"
                     }
                   },
-                  "Property": "date_jour"
+                  "Property": "annee_mois"
                 }
               },
-              "queryRef": "dim_date.date_jour",
-              "nativeQueryRef": "date_jour",
-              "displayName": "Date"
+              "queryRef": "dim_date.annee_mois",
+              "nativeQueryRef": "annee_mois",
+              "displayName": "Mois"
             }
           ]
         },
@@ -36,42 +36,31 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
-                  "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "fct_position_tresorerie_quotidienne"
-                        }
-                      },
-                      "Property": "position_cloture_eur"
-                    }
-                  },
-                  "Function": 0
-                }
-              },
-              "queryRef": "Sum(fct_position_tresorerie_quotidienne.position_cloture_eur)",
-              "nativeQueryRef": "Somme de position_cloture_eur",
-              "displayName": "Position (EUR)"
-            }
-          ]
-        },
-        "Series": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_filiale"
+                      "Entity": "_Mesures"
                     }
                   },
-                  "Property": "nom_filiale"
+                  "Property": "Refinancement levé (EUR)"
                 }
               },
-              "queryRef": "dim_filiale.nom_filiale",
-              "nativeQueryRef": "nom_filiale",
-              "displayName": "Filiale"
+              "queryRef": "_Mesures.Refinancement levé (EUR)",
+              "nativeQueryRef": "Refinancement levé (EUR)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Mesures"
+                    }
+                  },
+                  "Property": "Excédent placé (EUR)"
+                }
+              },
+              "queryRef": "_Mesures.Excédent placé (EUR)",
+              "nativeQueryRef": "Excédent placé (EUR)"
             }
           ]
         }
@@ -91,7 +80,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Position de trésorerie par filiale (EUR)'"
+                  "Value": "'Refinancement levé et excédent placé par mois (EUR)'"
                 }
               }
             }

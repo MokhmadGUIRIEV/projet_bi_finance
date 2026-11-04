@@ -45,7 +45,7 @@ On en tire :
 La valeur de la prévision n'est donc pas une « économie » uniforme : elle **module la réserve selon le mois et la filiale**. On relève la réserve avant les mois de décollecte (pour éviter un ratio sous 100 %, sanctionnable), et on place les excédents structurels (zone CFA).
 
 ## 3. Contrôle sur des données réelles postérieures (hors échantillon)
-Les banques centrales ont publié depuis les encours de **janvier 2026**. On les compare à la prévision arrêtée au 31/12/2025 (`etl/controle_a_posteriori.py`) :
+Les banques centrales ont publié depuis les encours de **janvier 2026**. On les compare à la prévision arrêtée au 31/12/2025 (`etl/controle_a_posteriori.py`). Ces valeurs sont conservées dans `data/sources/depots_reels_janvier_2026.csv`, pour que le contrôle soit reproductible :
 
 | Version du modèle | Erreur médiane sur l'encours fin janvier | Réel dans la fourchette à 90 % |
 |---|---|---|

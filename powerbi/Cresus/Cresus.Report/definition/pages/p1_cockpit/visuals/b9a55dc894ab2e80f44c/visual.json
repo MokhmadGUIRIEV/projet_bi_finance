@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "b9a55dc894ab2e80f44c",
   "position": {
-    "x": 330,
-    "y": 200,
+    "x": 860,
+    "y": 184,
     "z": 15000,
-    "width": 200,
-    "height": 110,
+    "width": 400,
+    "height": 92,
     "tabOrder": 15000
   },
   "visual": {
@@ -23,11 +23,11 @@
                       "Entity": "_Mesures"
                     }
                   },
-                  "Property": "Excédent placé (EUR)"
+                  "Property": "VaR change 95 % 10 j (EUR)"
                 }
               },
-              "queryRef": "_Mesures.Excédent placé (EUR)",
-              "nativeQueryRef": "Excédent placé (EUR)"
+              "queryRef": "_Mesures.VaR change 95 % 10 j (EUR)",
+              "nativeQueryRef": "VaR change 95 % 10 j (EUR)"
             }
           ]
         }
@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Excédent placé'"
+                  "Value": "'VaR de change 95 % à 10 jours'"
                 }
               }
             }

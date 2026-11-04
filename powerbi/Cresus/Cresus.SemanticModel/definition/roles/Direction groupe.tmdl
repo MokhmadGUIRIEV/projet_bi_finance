@@ -1,0 +1,3 @@
+role 'Direction groupe'
+	modelPermission: read
+

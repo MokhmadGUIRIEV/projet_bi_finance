@@ -1,0 +1,10 @@
+code_filiale,date_controle,encours_publie,source
+FR,2026-01-31,1104937000000.0,"BCE BSI - dépôts à vue ménages + SNF (L21, 2250+2240)"
+BNL,2026-01-31,207617000000.0,"BCE BSI - dépôts à vue ménages + SNF (L21, 2250+2240)"
+US,2026-01-31,18650544142857.145,"Fed H.8 via FRED - DPSACBW027NBOG (hebdo, non CVS)"
+CA,2026-01-31,1739439000000.0,Banque du Canada - V37258 M1+ brut non CVS
+SE,2026-01-31,4225373000000.0,"SCB (Suède) - M1, encours"
+DK,2026-01-31,1323902500000.0,Danmarks Nationalbank - DNRUIPI dépôts transférables SNF + ménages
+NO,2026-01-31,2986647000000.0,FMI MFS - dépôts transférables inclus dans la masse monétaire (F22)
+CI,2026-01-31,12051959000000.0,FMI MFS - dépôts transférables inclus dans la masse monétaire (F22)
+FI,2026-01-31,120778000000.0,"BCE BSI - dépôts à vue ménages + SNF (L21, 2250+2240)"

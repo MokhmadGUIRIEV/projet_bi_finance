@@ -1,5 +1,5 @@
 code_scenario,libelle_scenario,ordre_affichage,choc_retraits_pct,choc_change_usd_pct,choc_change_cad_pct,choc_change_cfa_pct,choc_change_nordiques_pct,choc_taux_bp,multiplicateur_sorties,reference_historique
-BASE,Scénario central,1,0,0,0,0,0,0,1.0,Tendance observée sur les 7 derniers jours
+BASE,Scénario central,1,0,0,0,0,0,0,1.0,Tendance observée sur les 30 derniers jours
 RUEE_MODEREE,Retraits massifs modérés,2,5,0,0,0,0,50,1.5,Northern Rock (sept. 2007) : environ 2 Md GBP retirés en quelques jours (5 à 8 % des dépôts)
 RUEE_SEVERE,Panique bancaire sévère,3,20,0,0,0,0,150,2.5,Silicon Valley Bank (mars 2023) : 25 % des dépôts demandés en une journée
 CHOC_DOLLAR,Dépréciation du dollar,4,0,-10,-8,0,0,0,1.0,Recul du dollar face à l'euro de plus de 10 % en 2017 et au 1er semestre 2025

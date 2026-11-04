@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "47c91fe33123acffbc46",
+  "position": {
+    "x": 530,
+    "y": 450,
+    "z": 12000,
+    "width": 730,
+    "height": 260,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_devise"
+                    }
+                  },
+                  "Property": "code_devise"
+                }
+              },
+              "queryRef": "dim_devise.code_devise",
+              "nativeQueryRef": "code_devise",
+              "displayName": "Devise"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Mesures"
+                    }
+                  },
+                  "Property": "Effet de change cumulé (EUR)"
+                }
+              },
+              "queryRef": "_Mesures.Effet de change cumulé (EUR)",
+              "nativeQueryRef": "Effet de change cumulé (EUR)"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Effet de change cumulé par devise (EUR)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

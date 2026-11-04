@@ -10,9 +10,9 @@ Ce dépôt contient le **POC complet** : une chaîne de données de bout en bout
 | Sources | Fichiers versionnés | **Exports bruts (« sales ») des 4 systèmes bancaires des filiales** sur 2023-2025 (`data/sources_internes/`, 371 fichiers, 4,3 M de lignes) + séries réelles des banques centrales et cours BCE (`data/sources/`) |
 | Extract + Load | **Python** (pandas, psycopg) | Chargement tel quel dans la zone brute de PostgreSQL : incrémental, idempotent, tracé (fichier, ligne, MD5) |
 | Entrepôt de données | **PostgreSQL 15 ou 16** | Architecture en couches : `raw` (bronze) → `staging` / `intermediate` (argent) → `marts` (or, schéma en étoile) + `ml` |
-| Transform + qualité | **dbt** | Nettoyage (11 règles RG-NET), dédoublonnage, rejets tracés, schéma en étoile, 116 tests (rapprochement comptable, complétude, ancrage sur les dépôts réels), lignage |
+| Transform + qualité | **dbt** | Nettoyage (11 règles RG-NET), dédoublonnage, rejets tracés, schéma en étoile, 97 tests (rapprochement comptable, complétude, ancrage sur les dépôts réels), lignage |
 | Analyse prédictive | **Python** (statsmodels, numpy) | Champion/challenger au pas quotidien, simulation Monte-Carlo, réserve optimale, contrôle sur des données réelles postérieures |
-| Restitution | **Power BI** | Projet `.pbip` prêt à ouvrir : 6 pages, 75 mesures DAX, simulateur What-if |
+| Restitution | **Power BI** | Projet `.pbip` prêt à ouvrir : 5 pages, 48 mesures DAX, simulateur What-if, sécurité par filiale (RLS) |
 
 ---
 
@@ -52,7 +52,7 @@ git clone https://github.com/mehdi182003/projet_bi_finance.git cresus ; cd cresu
 python -m venv .venv ; .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 copy .env.example .env          # adapter POSTGRES_PASSWORD si besoin
-python pipeline.py              # chaîne complète (~8 min) : load → dbt (nettoyage, étoile, tests) → prévision
+python pipeline.py              # chaîne complète (~7 min) : load → dbt (nettoyage, étoile, tests) → prévision
 ```
 Ouvrir ensuite **`powerbi/Cresus/Cresus.pbip`** → *Actualiser maintenant*, onglet **Base de données** (`postgres` / votre mot de passe).
 
@@ -63,9 +63,9 @@ Ouvrir ensuite **`powerbi/Cresus/Cresus.pbip`** → *Actualiser maintenant*, ong
 | Où | `data/sources_internes/` (Git) | `data/generees/lot_50/` (local, ignoré par Git) |
 | Prérequis | Aucun téléchargement | CSV PaySim dans `data/raw/` et **30 Go** libres |
 | Commande | `python pipeline.py` | `python pipeline.py --regenerer --taille-lot 50` (~1 h 10) |
-| Base PostgreSQL | 1,9 Go | 18 Go |
+| Base PostgreSQL | 1,8 Go | 17 Go |
 
-Les défauts, les totaux et les ancrages sont les mêmes ; seul le niveau de détail change (la part des gros décaissements et le taux de fraude ne font référence qu'en gros volume). PaySim n'est pas nécessaire au jeu versionné, mais le visuel PaySim de la page « Qualité » reste alors vide.
+Les défauts, les totaux et les ancrages sont les mêmes ; seul le niveau de détail change. PaySim ne sert qu'à générer des données : il n'est pas nécessaire au jeu versionné et n'est jamais chargé dans l'entrepôt.
 
 **Reprise du projet** : le contexte complet (décisions, état, reste à faire) est dans [`CLAUDE.md`](CLAUDE.md), chargé automatiquement par Claude Code.
 
@@ -133,7 +133,6 @@ Chaque KPI a été **testé statistiquement**. On n'a gardé que ceux qui varien
 | Exposition, **VaR 95 % 10 j**, **effet de change** (−58 M€ sur l'USD en 3 ans) | Risque de change |
 | **Rapport coût / risque de la couverture** et recommandation par devise | Quelles devises couvrir |
 | Horizon de survie sous stress | Résilience (7 scénarios historiques + simulateur) |
-| Part des gros décaissements | Pré-notification des gros retraits |
 
 KPI **écartés après analyse** :
 - l'ancien ratio de liquidité (double comptage) ;
@@ -150,9 +149,9 @@ KPI **écartés après analyse** :
 → [docs/03_analyse_predictive_et_simulation.md](docs/03_analyse_predictive_et_simulation.md)
 
 ### Étape 7 — Restitution Power BI
-`powerbi/Cresus/Cresus.pbip`, prêt à ouvrir, compte 6 pages : Cockpit DAF · Flux · Prévisions · Change & couverture · Simulateur de stress · Qualité des données.
+`powerbi/Cresus/Cresus.pbip`, prêt à ouvrir, compte 5 pages, une par objectif du sujet plus la qualité : Cockpit DAF · Prévisions · Change & couverture · Simulateur de stress · Qualité des données.
 - Le rapport a été ouvert dans Power BI Desktop et contrôlé page par page : valeurs comparées à la base, filtres et simulateur testés.
-- Le modèle compte 26 tables et 75 mesures.
+- Le modèle compte 15 tables, 4 paramètres What-if, 48 mesures et 3 rôles de sécurité (Direction, France, États-Unis).
 
 → [docs/04_guide_power_bi.md](docs/04_guide_power_bi.md)
 
@@ -193,14 +192,14 @@ erDiagram
 │   ├── systemes_sources.py     écrit les exports bruts des 4 systèmes, avec leurs défauts
 │   ├── prevision.py            champion/challenger, Monte-Carlo, réserve optimale, change
 │   ├── controle_a_posteriori.py prévision vs dépôts réels publiés ensuite (janvier 2026)
-│   ├── extraction_paysim.py / extraction_bce.py / chargement_raw.py
-│   └── donnees_demo.py         transactions synthétiques au format PaySim (tests hors Kaggle)
+│   └── extraction_paysim.py / extraction_bce.py / chargement_raw.py
 ├── data/sources_internes/      exports bruts des filiales (SAB, NORDIC, AMERICORE, DELTA) + soldes comptables
 ├── data/sources/               séries réelles des banques centrales, cours BCE (versionnées)
 ├── dbt/                        seeds (référentiels), staging, intermediate, marts, tests, macros
 ├── powerbi/Cresus/             projet Power BI prêt à ouvrir (Cresus.pbip)
 ├── powerbi/                    générateur du projet, mesures DAX, thème, outil .NET TomTool
-└── docs/                       livrables AMOA / MOE (01 à 08) et procédure de lancement (09)
+├── docs/                       livrables AMOA / MOE (01 à 08) et procédure de lancement (09)
+└── livrables/                  fiche d'expertise, webographie, réponse à l'appel d'offres, rendu POC, support de soutenance
 ```
 
 ## 6. Hypothèses et limites (à assumer en soutenance)

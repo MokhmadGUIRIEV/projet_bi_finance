@@ -13,9 +13,9 @@ Python (données sales) → PostgreSQL (raw) → dbt (nettoyage, étoile, tests)
 |---|---|---|
 | Pour quoi faire | Découvrir le projet, faire une démo, travailler sur le rapport | Travailler au volume réaliste |
 | Données | 4,3 M de lignes, déjà dans Git | 42,7 M de lignes, générées sur le PC |
-| Télécharger PaySim | Non (visuel PaySim de la page Qualité vide) | **Oui** |
-| Disque libre à prévoir | 3 Go | **30 Go** (base de 18 Go + fichiers temporaires) |
-| Durée, une fois installé | **~8 min** | **~1 h 10** |
+| Télécharger PaySim | Non | **Oui** (pour la génération seulement) |
+| Disque libre à prévoir | 3 Go | **30 Go** (base de 17 Go + fichiers temporaires) |
+| Durée, une fois installé | **~7 min** | **~1 h 10** |
 
 Durées mesurées sur un PC de 6 cœurs et 15 Go de RAM. Dans les deux cas, les données ont les mêmes défauts et les mêmes totaux, ancrés sur les dépôts réels ; seul le niveau de détail change (voir § 11).
 
@@ -139,7 +139,7 @@ python pipeline.py --etapes extract load
 - **À vérifier** : le journal affiche une ligne par système, par exemple `SAB : 111 fichiers (0 déjà à jour), 2 149 620 lignes chargées`.
 - **À savoir** : au lancement suivant, un fichier inchangé est ignoré (`déjà à jour`) ; c'est normal. Un fichier absent du dossier actif est retiré de `raw`.
 
-### Étape 3 — dbt : nettoyer et construire l'étoile *(5 min / 39 min)*
+### Étape 3 — dbt : nettoyer et construire l'étoile *(4 min / 39 min)*
 
 ```powershell
 cd dbt
@@ -150,7 +150,7 @@ cd ..
 Si les données ont changé depuis le dernier lancement (étape 1 relancée, changement de jeu), ajouter **`--full-refresh`** : le fait `fct_flux_tresorerie_horaire` ne recalcule sinon que ses 35 derniers jours.
 
 - **Ce que ça fait** : `staging` (un modèle par système : formats, fuseaux, unités, sens), `intermediate` (union, dédoublonnage, rejets tracés avec leur motif), `marts` (étoile et analyses), puis tous les contrôles.
-- **À vérifier** : la dernière ligne doit afficher **`ERROR=0`** (par exemple `PASS=138 WARN=1 ERROR=0`).
+- **À vérifier** : la dernière ligne doit afficher **`ERROR=0`** (par exemple `PASS=119 WARN=1 ERROR=0`).
 - **Seule alerte attendue** : `alerte_rupture_serie_change`, car le rouble n'est plus coté par la BCE depuis 2022.
 
 ### Étape 4 — Python : calculer les prévisions *(1 min)*
@@ -161,7 +161,7 @@ python pipeline.py --etapes prevision
 
 - **Ce que ça fait** : met en concurrence 3 modèles de prévision, simule 1 000 trajectoires de janvier 2026, calcule la réserve requise, puis compare la prévision aux dépôts réels publiés ensuite. Écrit dans le schéma `ml`.
 - **À vérifier** : le journal se termine par `Couverture de l'intervalle à 90 % : 7 / 9 filiales`.
-- **À savoir** : ce contrôle télécharge des données réelles. Sans Internet, il est simplement ignoré, avec un avertissement.
+- **À savoir** : les dépôts réels de janvier 2026 sont lus dans `data/sources/depots_reels_janvier_2026.csv`. Ce contrôle ne demande donc pas Internet et donne toujours le même résultat.
 
 ### Étape 5 — dbt : construire les marts de prévision *(moins d'1 min)*
 
@@ -169,7 +169,7 @@ python pipeline.py --etapes prevision
 python pipeline.py --etapes dbt_prev
 ```
 
-- **À vérifier** : `PASS=18 WARN=0 ERROR=0`.
+- **À vérifier** : `PASS=15 WARN=0 ERROR=0`.
 
 ## 10. Connecter Power BI à la base
 
@@ -193,32 +193,31 @@ Comparer sans aucun filtre (tous les segments sur « Tout »). La colonne B a é
 | Cockpit DAF | Position de trésorerie | 5,51 Md | 5,53 Md |
 | | Ratio de liquidité | 156,9 % | 157,6 % |
 | | Jours sous 100 % | 202 | 175 |
-| | Encours de dépôts | 35,11 Md | 35,11 Md |
 | | Refinancement levé | 6,96 Md | 6,94 Md |
 | | Excédent placé | 5,62 Md | 5,60 Md |
 | | VaR change 95 % 10 j | 26,24 M | 26,61 M |
-| | Effet de change cumulé | −115,58 M | −118,16 M |
-| Flux de trésorerie | Part des gros décaissements | 9,6 % | 13,8 % |
-| Prévisions | Erreur du champion (WAPE) | 17,1 % | 17,1 % |
-| | Contrôle réel janv. 2026 : dans la fourchette | 77,8 % | 77,8 % |
+| Prévisions | Erreur de prévision (WAPE) | 17,1 % | 17,1 % |
+| | Janvier 2026 dans la fourchette | 77,8 % | 77,8 % |
 | Change & couverture | Exposition au change | 2,57 Md | 2,60 Md |
+| | Effet de change (somme des barres) | −115,58 M | −118,16 M |
 | Simulateur (aucun choc) | Position stressée | 5,51 Md | 5,53 Md |
 | Simulateur (retraits 20 %) | Position stressée | −1,51 Md | −1,49 Md |
 | Qualité des données | Lignes brutes reçues | 4,26 M | 42,67 M |
 | | Taux de rejet | 4,4 % | 4,5 % |
 | | Rejets inattendus | 0 | 0 |
 
-Les écarts entre les deux colonnes sont normaux : les totaux sont ancrés sur les mêmes dépôts réels, mais un jeu plus léger représente moins bien les opérations rares. La **part des gros décaissements** et le **taux de fraude** y sont donc les plus sensibles : pour ces deux indicateurs, seul le gros volume fait référence.
+Les écarts entre les deux colonnes sont normaux : les totaux sont ancrés sur les mêmes dépôts réels, mais un jeu plus léger représente moins bien les opérations rares.
 
 **Ce que les graphiques doivent raconter :**
-- **Flux** : le refinancement domine en 2023 (fuite des dépôts pendant la hausse des taux), les placements en 2025.
-- **Flux** : les virements émis sont le premier type de décaissement. Le solde net est positif le matin (traitements en lot) et négatif en journée.
+- **Cockpit** : le refinancement domine en 2023 (fuite des dépôts pendant la hausse des taux), les placements en 2025.
 - **Change** : sans devise choisie, la courbe affiche l'USD (1 EUR ≈ 1,14 à 1,20).
 - **Change** : l'USD et la NOK ont les effets de change les plus négatifs ; la SEK est positive.
 - **Qualité** : l'encours réel et l'encours reconstitué se superposent. Sans filiale choisie, la courbe affiche la France (de 12,5 Md à environ 11 Md).
-- **Simulateur** : choisir retraits 20 %, multiplicateur 2,5 et taux 150 pb reproduit le scénario « Panique bancaire sévère » : la plupart des filiales passent en « Critique ». En gros volume : besoin de 10,77 Md, coût de 480,79 M par an.
+- **Simulateur** : choisir retraits 20 %, multiplicateur 2,5 et taux 150 reproduit le scénario « Panique bancaire sévère » : la plupart des filiales passent en « Critique ». En gros volume : besoin de 10,77 Md, coût de 480,79 M par an.
 
-Une carte qui affiche *(Vide)* pour l'horizon de survie signifie qu'il n'y a pas de fuite de trésorerie : la position ne baisse pas.
+Une carte qui affiche *(Vide)* pour la survie signifie qu'il n'y a pas de fuite de trésorerie : la position ne baisse pas. Pour la VaR de change, *(Vide)* sur une filiale en euros (France, Benelux, Finlande) signifie qu'elle n'a pas de risque de change.
+
+**Tester la sécurité par filiale (RLS)** : *Modélisation → Afficher comme rôles*, puis cocher un rôle. Avec *Filiale France* en gros volume : position 1,84 Md, 23 jours sous 100 %, VaR vide, une seule filiale dans les listes. Avec *Filiale Etats-Unis* : 572 M, 44 jours, VaR de 8,49 M. Cliquer sur le nom du rôle, puis sur **OK** ; pour revenir, *Arrêter l'affichage*.
 
 **N'enregistrez le rapport que si vous l'avez modifié** : l'enregistrement réécrit de nombreux fichiers de `powerbi/Cresus`, qui apparaîtront ensuite dans `git status`.
 

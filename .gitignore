@@ -1,8 +1,6 @@
 # Données (volumineuses / téléchargées)
 data/raw/*
-data/demo/*
 !data/raw/.gitkeep
-!data/demo/.gitkeep
 *.zip
 *.csv
 !dbt/seeds/*.csv

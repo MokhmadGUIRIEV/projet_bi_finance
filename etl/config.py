@@ -11,7 +11,6 @@ load_dotenv(RACINE / ".env")
 
 DOSSIER_DATA = RACINE / "data"
 DOSSIER_RAW = DOSSIER_DATA / "raw"
-DOSSIER_DEMO = DOSSIER_DATA / "demo"
 DOSSIER_DBT = RACINE / "dbt"
 
 # Fichier PaySim tel que publié sur Kaggle (ealaxi/paysim1)

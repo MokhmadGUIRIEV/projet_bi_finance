@@ -9,26 +9,21 @@ exposures:
     maturity: medium
     url: powerbi/Cresus/Cresus.pbip
     description: >
-      Rapport Power BI de la Direction Financière (6 pages : cockpit, flux, prévisions, change,
+      Rapport Power BI de la Direction Financière (5 pages : cockpit, prévisions, change,
       stress, qualité des données), importé depuis le schéma marts.
     depends_on:
       - ref('dim_date')
       - ref('dim_filiale')
       - ref('dim_devise')
-      - ref('dim_type_transaction')
       - ref('dim_scenario_stress')
-      - ref('fct_flux_tresorerie_horaire')
       - ref('fct_position_tresorerie_quotidienne')
-      - ref('fct_taux_change')
       - ref('mart_exposition_change')
       - ref('mart_liquidite_placement')
       - ref('mart_stress_test')
       - ref('mart_qualite_sources')
       - ref('mart_qualite_ancrage')
-      - ref('mart_qualite_donnees')
       - ref('mart_prevision_tresorerie')
       - ref('mart_prevision_change')
-      - ref('mart_qualite_prevision')
       - ref('mart_backtest_journalier')
       - ref('mart_reserve_optimale')
       - ref('mart_controle_a_posteriori')

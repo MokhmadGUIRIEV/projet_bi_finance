@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "a04512e002b431503d0a",
   "position": {
-    "x": 640,
-    "y": 80,
+    "x": 860,
+    "y": 84,
     "z": 12000,
-    "width": 200,
-    "height": 110,
+    "width": 400,
+    "height": 92,
     "tabOrder": 12000
   },
   "visual": {
@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Jours sous 100 % (filiale x jour)'"
+                  "Value": "'Jours sous 100 % (filiale × jour)'"
                 }
               }
             }

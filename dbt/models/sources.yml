@@ -45,21 +45,6 @@ sources:
               - not_null
               - entre_bornes:
                   arguments: {min_value: 0}
-      - name: paysim_transactions
-        description: >
-          Logs PaySim (Kaggle ealaxi/paysim1) : 6,36 M de transactions mobiles simulées sur 743 heures.
-          Utilisés comme « texture » des opérations (types, montants, heures, fraude) et pour la page Qualité.
-          Jeu de données historique figé (2017) : pas de contrôle de fraîcheur.
-        columns:
-          - name: id_ligne
-            tests: [unique, not_null]
-          - name: step
-            tests: [not_null]
-          - name: type
-            tests:
-              - accepted_values:
-                  arguments:
-                    values: [CASH_IN, CASH_OUT, DEBIT, PAYMENT, TRANSFER]
       - name: bce_taux_change
         description: Cours de référence BCE (unités de devise pour 1 EUR), format long.
         # Fraîcheur : la BCE publie chaque jour ouvré. Un export Webstat de plus de 10 jours doit

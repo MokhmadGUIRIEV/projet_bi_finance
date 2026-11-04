@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "482e8b38630dc65c611c",
   "position": {
-    "x": 950,
-    "y": 80,
+    "x": 20,
+    "y": 184,
     "z": 13000,
-    "width": 200,
-    "height": 110,
+    "width": 400,
+    "height": 92,
     "tabOrder": 13000
   },
   "visual": {
@@ -23,11 +23,11 @@
                       "Entity": "_Mesures"
                     }
                   },
-                  "Property": "Encours de dépôts (EUR)"
+                  "Property": "Refinancement levé (EUR)"
                 }
               },
-              "queryRef": "_Mesures.Encours de dépôts (EUR)",
-              "nativeQueryRef": "Encours de dépôts (EUR)"
+              "queryRef": "_Mesures.Refinancement levé (EUR)",
+              "nativeQueryRef": "Refinancement levé (EUR)"
             }
           ]
         }
@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Encours de dépôts'"
+                  "Value": "'Refinancement levé'"
                 }
               }
             }

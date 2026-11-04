@@ -1,5 +1,5 @@
 -- Dimension calendrier (libellés en français) couvrant l'historique de change,
--- la période PaySim rejouée et l'horizon de prévision.
+-- la période d'analyse et l'horizon de prévision.
 with jours as (
     select distinct date_cours as date_jour
     from {{ ref('int_taux_change_journalier') }}

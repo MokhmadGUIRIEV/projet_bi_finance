@@ -1,0 +1,106 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "d688694afe38edfe91e4",
+  "position": {
+    "x": 20,
+    "y": 420,
+    "z": 12000,
+    "width": 620,
+    "height": 290,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_filiale"
+                    }
+                  },
+                  "Property": "nom_filiale"
+                }
+              },
+              "queryRef": "dim_filiale.nom_filiale",
+              "nativeQueryRef": "nom_filiale",
+              "displayName": "Filiale"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_reserve_optimale"
+                    }
+                  },
+                  "Property": "taux_reserve_actuel_pct"
+                }
+              },
+              "queryRef": "mart_reserve_optimale.taux_reserve_actuel_pct",
+              "nativeQueryRef": "taux_reserve_actuel_pct",
+              "displayName": "Actuelle %"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_reserve_optimale"
+                    }
+                  },
+                  "Property": "reserve_requise_p99_pct"
+                }
+              },
+              "queryRef": "mart_reserve_optimale.reserve_requise_p99_pct",
+              "nativeQueryRef": "reserve_requise_p99_pct",
+              "displayName": "Requise %"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_reserve_optimale"
+                    }
+                  },
+                  "Property": "liquidite_liberable_eur"
+                }
+              },
+              "queryRef": "mart_reserve_optimale.liquidite_liberable_eur",
+              "nativeQueryRef": "liquidite_liberable_eur",
+              "displayName": "Libérable (+) / à lever (-)"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Réserve requise (P99) pour le mois prévu vs réserve actuelle'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

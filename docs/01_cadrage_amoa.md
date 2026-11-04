@@ -7,7 +7,7 @@ ZF Banque est un groupe de banques de détail : une dizaine de filiales, plus de
 
 | # | Objectif du sujet | Question de pilotage | Indicateur(s) | Table dbt |
 |---|---|---|---|---|
-| O1 | Anticiper les entrées/sorties de cash par devise et par filiale | Quelle sera ma position à J+7 et avec quelle incertitude ? | Solde net quotidien, position P5/P50/P95, probabilité de passer sous le besoin | `fct_position_tresorerie_quotidienne`, `mart_prevision_tresorerie` |
+| O1 | Anticiper les entrées/sorties de cash par devise et par filiale | Quelle sera ma position le mois prochain et avec quelle incertitude ? | Solde net quotidien, position P5/P50/P95, probabilité de passer sous le besoin | `fct_position_tresorerie_quotidienne`, `mart_prevision_tresorerie` |
 | O2 | Stratégie de couverture selon des scénarios de change | Quelle perte possible sur mes devises ? Que coûte la couverture ? | Exposition, VaR 95 % 10 j, fourchette de change, coût de couverture | `mart_exposition_change`, `mart_prevision_change`, `mart_liquidite_placement` |
 | O3 | Optimiser refinancement et placement | Où dort de la liquidité ? Où faut-il se refinancer, et quand ? | Ratio de liquidité, jours avant passage sous 100 %, liquidité excédentaire, gain de placement, coût de refinancement | `mart_liquidite_placement` |
 | O4 | Scénarios de stress à partir de données réelles | Combien de temps chaque filiale tient-elle en cas de crise ? | Position stressée, horizon de survie, statut | `mart_stress_test` + simulateur Power BI |
@@ -21,7 +21,7 @@ Enjeux transverses : **hétérogénéité** des données (10 filiales, 8 devises
 | Filiales | 10 : France, Benelux, Finlande, Suède, Danemark, Norvège, Côte d'Ivoire, Cameroun, Canada, États-Unis |
 | Devises de filiales | EUR, SEK, DKK, NOK, XOF, XAF, CAD, USD |
 | Devises de surveillance | JPY, RUB (citées par le sujet) |
-| Période analysée | Jours 6 à 17 de PaySim (régime d'activité stable), rejoués du 01/09 au 12/09/2025 (variables dbt) |
+| Période analysée | 2023-2025 : 3 ans de flux ancrés sur les dépôts réels (docs/07) |
 | Horizon de prévision | 7 jours pour les flux, 30 jours pour le change |
 | Hors périmètre | Crédits, titres, dérivés ; données nominatives (RGPD) |
 
@@ -31,10 +31,10 @@ Enjeux transverses : **hétérogénéité** des données (10 filiales, 8 devises
 
 | Source | Type | Contenu | Accès | Qualité / limites | Décision |
 |---|---|---|---|---|---|
-| Kaggle — PaySim (ealaxi/paysim1) | Interne (proxy) | 6,36 M de transactions mobiles simulées, 743 h, 11 colonnes | CSV, compte Kaggle gratuit | Synthétique ; volume qui chute après ~400 h ; 1 seul mois | **Retenue** comme proxy des flux de la banque de détail |
+| Kaggle — PaySim (ealaxi/paysim1) | Interne (proxy) | 6,36 M de transactions mobiles simulées, 743 h, 11 colonnes | CSV, compte Kaggle gratuit | Synthétique ; volume qui chute après ~400 h ; 1 seul mois | **Retenue** pour la forme des montants, à la génération seulement (docs/06 et 07) |
 | Banque de France — Webstat (série EXR, cours BCE) | Externe | Cours de référence quotidiens, 30 devises, 1999-2026 | Export CSV gratuit | Officiel ; pas de cotation le week-end ; RUB arrêté au 01/03/2022 ; pas de XOF/XAF | **Retenue** |
 | BCE — eurofxref-hist.zip | Externe | Même contenu que Webstat | Téléchargement direct | Idem | Retenue en **secours** (code prévu) |
-| Banques centrales (BCE, Fed, BdC, Riksbank, Norges Bank, Danmarks Nationalbank, BCEAO, BEAC) | Externe | Taux directeurs | Sites officiels | Saisie manuelle, à mettre à jour | **Retenue** (seed `ref_taux_directeurs`) |
+| Banques centrales (BCE, Fed, BdC, Riksbank, Norges Bank, Danmarks Nationalbank, BCEAO, BEAC) | Externe | Taux directeurs | API officielles, communiqués BCEAO et BEAC | 1 valeur BCEAO déduite | **Retenue** (seed `ref_taux_directeurs`) |
 | EBA — EU-wide Transparency Exercise | Externe | Bilans et liquidité de banques européennes | XLSX | Données annuelles agrégées, pas de flux | Écartée pour le POC ; utile pour calibrer les taux de réserve |
 | Benchmark DAF-Mag 2026 | Marché | Comparatif des plateformes BI et EPM | Article | Qualitatif | Utilisée pour le choix d'outils |
 

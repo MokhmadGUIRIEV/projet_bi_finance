@@ -17,7 +17,7 @@ models:
       type_table: "dimension"
       grain: "1 ligne = 1 filiale"
       remarque: "conforme ; clé métier stable (SCD type 1)"
-    description: Les 6 filiales de ZF Banque, leur devise et leur situation de départ.
+    description: Les 10 filiales de ZF Banque, leur devise et leur situation de départ.
     columns:
       - name: code_filiale
         tests: [unique, not_null]
@@ -41,7 +41,7 @@ models:
       type_table: "dimension"
       grain: "1 ligne = 1 type d'opération normalisé"
       remarque: "conforme"
-    description: Types d'opérations PaySim et leur sens de trésorerie.
+    description: Types d'opérations normalisés et leur sens de trésorerie.
     columns:
       - name: code_type
         tests: [unique, not_null]
@@ -62,7 +62,7 @@ models:
       type_table: "fait transactionnel agrégé"
       grain: "heure x filiale x type x fraude x gros ticket"
       remarque: "mesures additives ; incrémental"
-    description: Flux de trésorerie agrégés (heure x filiale x type x jambe x intragroupe x fraude).
+    description: Flux de trésorerie agrégés (heure x filiale x type x fraude x gros ticket).
     columns:
       - name: id_flux
         tests: [unique, not_null]
@@ -171,14 +171,6 @@ models:
       - name: ecart_pct
         tests: [not_null]
 
-  - name: mart_qualite_donnees
-    description: Profil quotidien de PaySim (source de « texture ») et jours retenus / exclus comme matière première.
-    columns:
-      - name: jour_simulation
-        tests: [unique, not_null]
-      - name: statut
-        tests: [not_null]
-
   - name: mart_stress_test
     description: Résultat des scénarios de stress par filiale à la date d'arrêté.
     columns:
@@ -200,11 +192,6 @@ models:
     description: Taux historiques + fourchette de prévision et contrôle a posteriori.
     columns:
       - name: id_prevision_change
-        tests: [unique, not_null]
-  - name: mart_qualite_prevision
-    description: Précision de chaque modèle candidat (WAPE, MAPE, biais) et champion retenu.
-    columns:
-      - name: id_qualite
         tests: [unique, not_null]
   - name: mart_controle_a_posteriori
     description: Prévision des dépôts au 31/01/2026 vs encours réels publiés ensuite (test hors échantillon).

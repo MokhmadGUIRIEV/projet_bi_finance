@@ -73,12 +73,12 @@ Résultat : 4,0 Md€ de refinancement net en 2023 (fuite des dépôts pendant l
 | Complétude du chargement (test `assert_conservation_volumes`) | ✅ |
 | Taux de change disponibles chaque jour de la période | ✅ |
 | Vraisemblance : décaissements / dépôts entre 0,05 % et 5 % par jour | ✅ |
-| **Prévision confrontée à du réel postérieur** : encours de janvier 2026 publiés après la date d'arrêté | ✅ Erreur médiane de −3,7 % à +2,0 % ; réel dans la fourchette à 90 % pour 7 filiales sur 9 |
+| **Prévision confrontée à du réel postérieur** : encours de janvier 2026 publiés après la date d'arrêté | ✅ Erreur médiane de −3,9 % à +1,2 % ; réel dans la fourchette à 90 % pour 7 filiales sur 9 |
 | Fourchette de change confrontée aux cours réels de janvier 2026 | ✅ 119 jours-devises sur 126 (94 %) dans la fourchette à 90 % |
 
 ## 6. Limites à annoncer
 - **Les transactions individuelles restent simulées.** Ce qui est réel : les niveaux mensuels (hebdomadaires aux États-Unis), les taux, le change et le calendrier des jours fériés.
-- **Le profil intra-mensuel est une hypothèse**, et le modèle de prévision utilise les mêmes variables de calendrier. Sa précision journalière (WAPE de 12 à 23 %) est donc en partie « attendue ». En revanche, le contrôle sur janvier 2026 porte sur des niveaux réels qu'il n'a pas vus.
+- **Le profil intra-mensuel est une hypothèse**, et le modèle de prévision utilise les mêmes variables de calendrier. Sa précision journalière (WAPE de 12 à 28 %) est donc en partie « attendue ». En revanche, le contrôle sur janvier 2026 porte sur des niveaux réels qu'il n'a pas vus.
 - **Cameroun** : 10 mois sur 36 sont interpolés entre des points trimestriels BEAC ; les points de 2023 mélangent des millésimes provisoires et révisés.
 - **Parts de marché** : ce sont des hypothèses (FR 1 %, Benelux et Finlande 2 %, nordiques 1 %, Côte d'Ivoire et Cameroun 8 %, Canada 0,2 %, États-Unis 0,03 %). Elles fixent la taille, pas la dynamique.
 - **Taux BCEAO de décembre 2022** : déduit des communiqués de septembre 2022 et mars 2023 (marqué `a_verifier`).
