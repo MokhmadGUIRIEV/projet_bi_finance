@@ -5,7 +5,7 @@
     "x": 20,
     "y": 120,
     "z": 10000,
-    "width": 490,
+    "width": 620,
     "height": 590,
     "tabOrder": 10000
   },
@@ -47,7 +47,7 @@
               },
               "queryRef": "_Mesures.Taux de change prévu P05",
               "nativeQueryRef": "Taux de change prévu P05",
-              "displayName": "P5"
+              "displayName": "Bas"
             },
             {
               "field": {
@@ -62,7 +62,7 @@
               },
               "queryRef": "_Mesures.Taux de change prévu P50",
               "nativeQueryRef": "Taux de change prévu P50",
-              "displayName": "P50"
+              "displayName": "Milieu"
             },
             {
               "field": {
@@ -77,7 +77,7 @@
               },
               "queryRef": "_Mesures.Taux de change prévu P95",
               "nativeQueryRef": "Taux de change prévu P95",
-              "displayName": "P95"
+              "displayName": "Haut"
             },
             {
               "field": {
@@ -112,7 +112,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'1 EUR en devise : prévu vs réalisé (défaut USD)'"
+                  "Value": "'1 EUR en devise : prévu et réalisé (USD par défaut)'"
                 }
               }
             }

@@ -192,19 +192,18 @@ Comparer sans aucun filtre (tous les segments sur « Tout »). La colonne B a é
 |---|---|---|---|
 | Cockpit DAF | Position de trésorerie | 5,51 Md | 5,53 Md |
 | | Ratio de liquidité | 156,9 % | 157,6 % |
-| | Jours sous 100 % | 202 | 175 |
+| | Jours sous 100 % (total du tableau) | 202 | 175 |
 | | Refinancement levé | 6,96 Md | 6,94 Md |
 | | Excédent placé | 5,62 Md | 5,60 Md |
-| | VaR change 95 % 10 j | 26,24 M | 26,61 M |
-| Prévisions | Erreur de prévision (WAPE) | 17,1 % | 17,1 % |
-| | Janvier 2026 dans la fourchette | 77,8 % | 77,8 % |
+| Prévisions | Erreur de prévision (WAPE) | 14,3 % | 14,5 % |
+| | Dépôts de janvier 2026 dans la fourchette (tableau) | 7 sur 9 | 7 sur 9 |
 | Change & couverture | Exposition au change | 2,57 Md | 2,60 Md |
+| | Perte possible à 10 jours (VaR) | 26,24 M | 26,61 M |
 | | Effet de change (somme des barres) | −115,58 M | −118,16 M |
-| Simulateur (aucun choc) | Position stressée | 5,51 Md | 5,53 Md |
-| Simulateur (retraits 20 %) | Position stressée | −1,51 Md | −1,49 Md |
+| Simulateur (aucun choc) | Position après le choc | 5,51 Md | 5,53 Md |
+| Simulateur (retraits 20 %) | Position après le choc | −1,51 Md | −1,49 Md |
 | Qualité des données | Lignes brutes reçues | 4,26 M | 42,67 M |
 | | Taux de rejet | 4,4 % | 4,5 % |
-| | Rejets inattendus | 0 | 0 |
 
 Les écarts entre les deux colonnes sont normaux : les totaux sont ancrés sur les mêmes dépôts réels, mais un jeu plus léger représente moins bien les opérations rares.
 
@@ -213,9 +212,9 @@ Les écarts entre les deux colonnes sont normaux : les totaux sont ancrés sur l
 - **Change** : sans devise choisie, la courbe affiche l'USD (1 EUR ≈ 1,14 à 1,20).
 - **Change** : l'USD et la NOK ont les effets de change les plus négatifs ; la SEK est positive.
 - **Qualité** : l'encours réel et l'encours reconstitué se superposent. Sans filiale choisie, la courbe affiche la France (de 12,5 Md à environ 11 Md).
-- **Simulateur** : choisir retraits 20 %, multiplicateur 2,5 et taux 150 reproduit le scénario « Panique bancaire sévère » : la plupart des filiales passent en « Critique ». En gros volume : besoin de 10,77 Md, coût de 480,79 M par an.
+- **Simulateur** : choisir retraits 20 %, sorties 2,5 et taux 150 reproduit le scénario « Panique bancaire sévère » : la plupart des filiales passent en « Critique ». En gros volume : besoin de 10,77 Md, coût de 480,79 M par an.
 
-Une carte qui affiche *(Vide)* pour la survie signifie qu'il n'y a pas de fuite de trésorerie : la position ne baisse pas. Pour la VaR de change, *(Vide)* sur une filiale en euros (France, Benelux, Finlande) signifie qu'elle n'a pas de risque de change.
+Une carte qui affiche *(Vide)* pour la survie signifie qu'il n'y a pas de fuite de trésorerie : la position ne baisse pas. Pour la perte possible sur le change, *(Vide)* sur l'euro signifie qu'il n'y a pas de risque de change.
 
 **Tester la sécurité par filiale (RLS)** : *Modélisation → Afficher comme rôles*, puis cocher un rôle. Avec *Filiale France* en gros volume : position 1,84 Md, 23 jours sous 100 %, VaR vide, une seule filiale dans les listes. Avec *Filiale Etats-Unis* : 572 M, 44 jours, VaR de 8,49 M. Cliquer sur le nom du rôle, puis sur **OK** ; pour revenir, *Arrêter l'affichage*.
 

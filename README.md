@@ -12,7 +12,7 @@ Ce dépôt contient le **POC complet** : une chaîne de données de bout en bout
 | Entrepôt de données | **PostgreSQL 15 ou 16** | Architecture en couches : `raw` (bronze) → `staging` / `intermediate` (argent) → `marts` (or, schéma en étoile) + `ml` |
 | Transform + qualité | **dbt** | Nettoyage (11 règles RG-NET), dédoublonnage, rejets tracés, schéma en étoile, 97 tests (rapprochement comptable, complétude, ancrage sur les dépôts réels), lignage |
 | Analyse prédictive | **Python** (statsmodels, numpy) | Champion/challenger au pas quotidien, simulation Monte-Carlo, réserve optimale, contrôle sur des données réelles postérieures |
-| Restitution | **Power BI** | Projet `.pbip` prêt à ouvrir : 5 pages, 48 mesures DAX, simulateur What-if, sécurité par filiale (RLS) |
+| Restitution | **Power BI** | Projet `.pbip` prêt à ouvrir : 5 pages, 45 mesures DAX, simulateur What-if, sécurité par filiale (RLS) |
 
 ---
 
@@ -131,7 +131,7 @@ Chaque KPI a été **testé statistiquement**. On n'a gardé que ceux qui varien
 | **Réserve requise à 99 %** (prévision) vs réserve actuelle | Où libérer de la liquidité, où en lever |
 | Prévision P5 / P50 / P95 et probabilité de passer sous 100 % | Anticipation |
 | Exposition, **VaR 95 % 10 j**, **effet de change** (−58 M€ sur l'USD en 3 ans) | Risque de change |
-| **Rapport coût / risque de la couverture** et recommandation par devise | Quelles devises couvrir |
+| **Décision de couverture** par devise (compare le coût au risque) | Quelles devises couvrir |
 | Horizon de survie sous stress | Résilience (7 scénarios historiques + simulateur) |
 
 KPI **écartés après analyse** :
@@ -151,7 +151,7 @@ KPI **écartés après analyse** :
 ### Étape 7 — Restitution Power BI
 `powerbi/Cresus/Cresus.pbip`, prêt à ouvrir, compte 5 pages, une par objectif du sujet plus la qualité : Cockpit DAF · Prévisions · Change & couverture · Simulateur de stress · Qualité des données.
 - Le rapport a été ouvert dans Power BI Desktop et contrôlé page par page : valeurs comparées à la base, filtres et simulateur testés.
-- Le modèle compte 15 tables, 4 paramètres What-if, 48 mesures et 3 rôles de sécurité (Direction, France, États-Unis).
+- Le modèle compte 15 tables, 4 paramètres What-if, 45 mesures et 3 rôles de sécurité (Direction, France, États-Unis).
 
 → [docs/04_guide_power_bi.md](docs/04_guide_power_bi.md)
 

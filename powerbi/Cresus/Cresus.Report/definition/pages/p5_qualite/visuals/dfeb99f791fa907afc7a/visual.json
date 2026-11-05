@@ -82,7 +82,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Encours de dépôts : réel vs reconstitué (défaut : France)'"
+                  "Value": "'Encours de dépôts : réel et reconstitué (France par défaut)'"
                 }
               }
             }

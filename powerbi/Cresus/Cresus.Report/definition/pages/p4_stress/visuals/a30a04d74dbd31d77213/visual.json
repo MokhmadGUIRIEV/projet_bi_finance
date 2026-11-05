@@ -10,10 +10,10 @@
     "tabOrder": 11000
   },
   "visual": {
-    "visualType": "pivotTable",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Rows": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -29,30 +29,7 @@
               "queryRef": "dim_scenario_stress.libelle_scenario",
               "nativeQueryRef": "libelle_scenario",
               "displayName": "Scénario"
-            }
-          ]
-        },
-        "Columns": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "dim_filiale"
-                    }
-                  },
-                  "Property": "code_filiale"
-                }
-              },
-              "queryRef": "dim_filiale.code_filiale",
-              "nativeQueryRef": "code_filiale",
-              "displayName": "Filiale"
-            }
-          ]
-        },
-        "Values": {
-          "projections": [
+            },
             {
               "field": {
                 "Aggregation": {
@@ -63,15 +40,49 @@
                           "Entity": "mart_stress_test"
                         }
                       },
-                      "Property": "horizon_survie_jours"
+                      "Property": "position_stressee_eur"
                     }
                   },
                   "Function": 0
                 }
               },
-              "queryRef": "Sum(mart_stress_test.horizon_survie_jours)",
-              "nativeQueryRef": "Somme de horizon_survie_jours",
-              "displayName": "Jours"
+              "queryRef": "Sum(mart_stress_test.position_stressee_eur)",
+              "nativeQueryRef": "Somme de position_stressee_eur",
+              "displayName": "Position"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "mart_stress_test"
+                        }
+                      },
+                      "Property": "besoin_refinancement_eur"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(mart_stress_test.besoin_refinancement_eur)",
+              "nativeQueryRef": "Somme de besoin_refinancement_eur",
+              "displayName": "Besoin"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Mesures"
+                    }
+                  },
+                  "Property": "Filiales critiques"
+                }
+              },
+              "queryRef": "_Mesures.Filiales critiques",
+              "nativeQueryRef": "Filiales critiques"
             }
           ]
         }
@@ -91,7 +102,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Scénarios historiques : horizon de survie (jours)'"
+                  "Value": "'Les 7 scénarios de crise, pour tout le groupe'"
                 }
               }
             }
@@ -101,17 +112,10 @@
     },
     "drillFilterOtherVisuals": true,
     "objects": {
-      "subTotals": [
+      "total": [
         {
           "properties": {
-            "rowSubtotals": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "columnSubtotals": {
+            "totals": {
               "expr": {
                 "Literal": {
                   "Value": "false"

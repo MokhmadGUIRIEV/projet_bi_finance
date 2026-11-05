@@ -88,16 +88,6 @@ RETURN
             )
     )
 
-// Décision de couverture : coût annuel (différentiel de taux) / volatilité annuelle, par devise.
-// Vide au total : une moyenne de ratios entre devises n'a pas de sens.
-Rapport coût / risque de la couverture =
-VAR DerniereDate = CALCULATE ( MAX ( mart_exposition_change[date_position] ) )
-RETURN
-    IF (
-        HASONEVALUE ( mart_exposition_change[code_devise] ),
-        CALCULATE ( AVERAGE ( mart_exposition_change[rapport_cout_risque] ), dim_date[date_jour] = DerniereDate )
-    )
-
 Recommandation de couverture =
 VAR DerniereDate = CALCULATE ( MAX ( mart_exposition_change[date_position] ) )
 RETURN CALCULATE ( SELECTEDVALUE ( mart_exposition_change[recommandation_couverture] ), dim_date[date_jour] = DerniereDate )
@@ -116,20 +106,15 @@ MAXX (
 )
 
 // WAPE pondéré (Σ|réel − prévu| / Σ réel) plutôt qu'une moyenne de WAPE par série (moyenne de moyennes).
-// Montants en devise locale : à lire par filiale (au total groupe, l'écart mesuré vs pondération EUR est < 0,1 pt).
+// En euros : additionner des devises locales donnerait trop de poids aux francs CFA.
 WAPE du modèle champion % =
 CALCULATE (
     DIVIDE (
-        SUMX ( mart_backtest_journalier, ABS ( mart_backtest_journalier[reel_devise] - mart_backtest_journalier[prevu_devise] ) ),
-        SUM ( mart_backtest_journalier[reel_devise] )
+        SUMX ( mart_backtest_journalier, ABS ( mart_backtest_journalier[reel_eur] - mart_backtest_journalier[prevu_eur] ) ),
+        SUM ( mart_backtest_journalier[reel_eur] )
     ),
     mart_backtest_journalier[est_champion] = TRUE ()
 )
-
-// Contrôle a posteriori sur les dépôts réels publiés après la date d'arrêté
-Couverture de l'intervalle à 90 % % =
-DIVIDE ( CALCULATE ( COUNTROWS ( mart_controle_a_posteriori ), mart_controle_a_posteriori[dans_intervalle_90] = TRUE () ),
-         COUNTROWS ( mart_controle_a_posteriori ) )
 
 // Une moyenne de taux entre devises n'a pas de sens. Sans devise choisie : l'USD.
 Taux de change prévu P50 =
@@ -211,6 +196,10 @@ RETURN
         "Critique"
     )
 
+// Nombre de filiales en statut critique, par scénario historique
+Filiales critiques =
+CALCULATE ( COUNTROWS ( mart_stress_test ), mart_stress_test[statut_resilience] = "3 - Critique" ) + 0
+
 // ------------------------------------------------- 7. QUALITÉ DES DONNÉES SOURCES (ETL)
 Lignes brutes reçues = SUM ( mart_qualite_sources[nb_lignes_brutes] )
 Lignes retenues après nettoyage = SUM ( mart_qualite_sources[nb_lignes_retenues] )
@@ -220,10 +209,6 @@ Libellés corrigés = SUM ( mart_qualite_sources[nb_libelles_corriges] )
 Devises corrigées = SUM ( mart_qualite_sources[nb_devises_corrigees] )
 Opérations annulées, tests et extournes écartés =
 SUM ( mart_qualite_sources[nb_annulees] ) + SUM ( mart_qualite_sources[nb_comptes_test] ) + SUM ( mart_qualite_sources[nb_extournes] )
-Rejets inattendus = SUM ( mart_qualite_sources[nb_rejets_inattendus] )
-
-// Fiabilité : encours réel publié (banques centrales) vs encours reconstitué
-Écart max à l'encours réel % = MAXX ( mart_qualite_ancrage, ABS ( mart_qualite_ancrage[ecart_pct] ) ) / 100
 
 // Encours en devise locale : une somme entre filiales mélangerait les devises. Sans filiale choisie : la France.
 Encours réel publié (devise) =

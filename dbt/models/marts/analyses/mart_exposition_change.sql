@@ -68,10 +68,10 @@ select
     case when volatilite_annualisee_pct > 0
          then cout_couverture_annuel_pct / volatilite_annualisee_pct end       as rapport_cout_risque,
     case
-        when regime_change = 'fixe'          then 'Pas de couverture de marché (parité fixe) : piloter par stress test'
-        when volatilite_annualisee_pct < 1   then 'Couverture inutile (devise quasi ancrée à l''euro)'
-        when cout_couverture_annuel_pct < 0  then 'Couvrir : la couverture rapporte (taux local < taux BCE)'
-        when cout_couverture_annuel_pct / volatilite_annualisee_pct < 0.25 then 'Couverture prioritaire (coût faible au regard du risque)'
-        else 'Couverture partielle à arbitrer (coût élevé au regard du risque)'
+        when regime_change = 'fixe'          then 'Parité fixe'
+        when volatilite_annualisee_pct < 1   then 'Inutile'
+        when cout_couverture_annuel_pct < 0  then 'À couvrir'
+        when cout_couverture_annuel_pct / volatilite_annualisee_pct < 0.25 then 'Prioritaire'
+        else 'À arbitrer'
     end                                                                        as recommandation_couverture
 from base

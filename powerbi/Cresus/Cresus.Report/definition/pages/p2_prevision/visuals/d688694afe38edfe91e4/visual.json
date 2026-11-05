@@ -73,7 +73,7 @@
               },
               "queryRef": "mart_reserve_optimale.liquidite_liberable_eur",
               "nativeQueryRef": "liquidite_liberable_eur",
-              "displayName": "Libérable (+) / à lever (-)"
+              "displayName": "À placer (+) ou à lever (-)"
             }
           ]
         }
@@ -93,7 +93,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Réserve requise (P99) pour le mois prévu vs réserve actuelle'"
+                  "Value": "'Réserve requise pour le mois prévu et réserve actuelle'"
                 }
               }
             }

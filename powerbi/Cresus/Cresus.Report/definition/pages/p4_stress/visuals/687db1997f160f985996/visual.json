@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Position stressée'"
+                  "Value": "'Position après le choc'"
                 }
               }
             }

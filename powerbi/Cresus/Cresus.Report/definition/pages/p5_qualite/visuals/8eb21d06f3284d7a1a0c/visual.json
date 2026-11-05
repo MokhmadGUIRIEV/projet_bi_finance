@@ -88,7 +88,8 @@
                 }
               },
               "queryRef": "_Mesures.Opérations annulées, tests et extournes écartés",
-              "nativeQueryRef": "Opérations annulées, tests et extournes écartés"
+              "nativeQueryRef": "Opérations annulées, tests et extournes écartés",
+              "displayName": "Opérations écartées"
             }
           ]
         }
@@ -108,7 +109,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Défauts détectés et corrigés par l''ETL, par système source'"
+                  "Value": "'Défauts corrigés au nettoyage, par système source'"
                 }
               }
             }

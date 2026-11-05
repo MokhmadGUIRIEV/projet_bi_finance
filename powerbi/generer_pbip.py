@@ -366,20 +366,18 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
     vs = [segment(n, 1, 20, 8, 300, filiale, "Filiale"),
           segment(n, 2, 340, 8, 200, colonne("dim_date", "annee", "Année"), "Année")]
     kpis = [("Position de trésorerie (EUR)", "Position de trésorerie"),
-            ("Ratio de couverture liquidité %", "Ratio de liquidité (LCR simplifié)"),
-            ("Jours sous 100 %", "Jours sous 100 % (filiale × jour)"),
+            ("Ratio de couverture liquidité %", "Ratio de liquidité"),
             ("Refinancement levé (EUR)", "Refinancement levé"),
-            ("Excédent placé (EUR)", "Excédent placé"),
-            ("VaR change 95 % 10 j (EUR)", "VaR de change 95 % à 10 jours")]
+            ("Excédent placé (EUR)", "Excédent placé")]
     for i, (m, t) in enumerate(kpis):
-        vs.append(carte(n, 10 + i, 20 + (i % 3) * 420, 84 + (i // 3) * 100, m, t, l=400, h=92))
-    vs.append(visuel(n, 30, "clusteredColumnChart", 20, 290, 620, 420, "Refinancement levé et excédent placé par mois (EUR)",
+        vs.append(carte(n, 10 + i, 20 + i * 315, 84, m, t, l=295, h=92))
+    vs.append(visuel(n, 30, "clusteredColumnChart", 20, 190, 620, 520, "Refinancement levé et excédent placé par mois (EUR)",
                      {"Category": [colonne("dim_date", "annee_mois", "Mois")],
                       "Y": [mesure("Refinancement levé (EUR)"), mesure("Excédent placé (EUR)")]}))
-    vs.append(visuel(n, 31, "tableEx", 660, 290, 600, 420, "Liquidité par filiale",
+    vs.append(visuel(n, 31, "tableEx", 660, 190, 600, 520, "Liquidité par filiale",
                      {"Values": [filiale,
                                  mesure("Ratio de couverture liquidité %", libelle="Ratio"),
-                                 mesure("Jours sous 100 %", libelle="Jours < 100 %"),
+                                 mesure("Jours sous 100 %", libelle="Jours sous 100 %"),
                                  mesure("Refinancement levé (EUR)", libelle="Refinancement"),
                                  mesure("Excédent placé (EUR)", libelle="Placé")]}))
     p.append((n, "Cockpit DAF", vs))
@@ -387,50 +385,48 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
     # 2. Prévisions : anticiper les entrées et sorties de cash
     n = "p2_prevision"
     vs = [segment(n, 1, 20, 8, 240, filiale, "Filiale"),
-          carte(n, 2, 280, 8, "Probabilité de passer sous le besoin de liquidité %", "Proba. de passer sous 100 %"),
-          carte(n, 3, 610, 8, "WAPE du modèle champion %", "Erreur de prévision (WAPE)"),
-          carte(n, 4, 940, 8, "Couverture de l'intervalle à 90 % %", "Janvier 2026 dans la fourchette"),
-          visuel(n, 10, "lineChart", 20, 120, 620, 290, "Position réalisée puis prévue : P5 / P50 / P95 (EUR)",
+          carte(n, 2, 280, 8, "Probabilité de passer sous le besoin de liquidité %", "Risque sous 100 % (filiale la plus exposée)", l=480),
+          carte(n, 3, 780, 8, "WAPE du modèle champion %", "Erreur de prévision (WAPE)", l=480),
+          visuel(n, 10, "lineChart", 20, 120, 620, 290, "Position réalisée puis prévue, avec sa fourchette (EUR)",
                  {"Category": [colonne("mart_prevision_tresorerie", "date_jour", "Date")],
-                  "Y": [mesure("Position prévue P05 (EUR)", libelle="P5 (pessimiste)"),
-                        mesure("Position prévue P50 (EUR)", libelle="P50 (médiane)"),
-                        mesure("Position prévue P95 (EUR)", libelle="P95 (optimiste)")]}),
+                  "Y": [mesure("Position prévue P05 (EUR)", libelle="Bas"),
+                        mesure("Position prévue P50 (EUR)", libelle="Milieu"),
+                        mesure("Position prévue P95 (EUR)", libelle="Haut")]}),
           visuel(n, 11, "clusteredColumnChart", 660, 120, 600, 290, "Encaissements et décaissements par mois (EUR)",
                  {"Category": [colonne("dim_date", "annee_mois", "Mois")],
                   "Y": [mesure("Encaissements (EUR)"), mesure("Décaissements (EUR)")]}),
-          visuel(n, 12, "tableEx", 20, 420, 620, 290, "Réserve requise (P99) pour le mois prévu vs réserve actuelle",
+          visuel(n, 12, "tableEx", 20, 420, 620, 290, "Réserve requise pour le mois prévu et réserve actuelle",
                  {"Values": [filiale,
                              colonne("mart_reserve_optimale", "taux_reserve_actuel_pct", "Actuelle %"),
                              colonne("mart_reserve_optimale", "reserve_requise_p99_pct", "Requise %"),
-                             colonne("mart_reserve_optimale", "liquidite_liberable_eur", "Libérable (+) / à lever (-)")]}),
-          visuel(n, 13, "tableEx", 660, 420, 600, 290, "Contrôle : dépôts réels au 31/01/2026 vs prévus",
+                             colonne("mart_reserve_optimale", "liquidite_liberable_eur", "À placer (+) ou à lever (-)")]}),
+          visuel(n, 13, "tableEx", 660, 420, 600, 290, "Dépôts réels au 31/01/2026 et prévision (devise locale)",
                  {"Values": [colonne("mart_controle_a_posteriori", "code_filiale", "Filiale"),
                              colonne("mart_controle_a_posteriori", "depots_reels_devise", "Réel"),
-                             colonne("mart_controle_a_posteriori", "depots_p50_devise", "Prévu P50"),
+                             colonne("mart_controle_a_posteriori", "depots_p50_devise", "Prévu"),
                              colonne("mart_controle_a_posteriori", "erreur_p50_pct", "Erreur %"),
-                             colonne("mart_controle_a_posteriori", "dans_intervalle_90", "Dans [P5 ; P95]")]})]
+                             colonne("mart_controle_a_posteriori", "dans_la_fourchette", "Dans la fourchette")]})]
     p.append((n, "Prévisions", vs))
 
     # 3. Change : élaborer la stratégie de couverture
     n = "p3_change"
     vs = [segment(n, 1, 20, 8, 240, colonne("dim_devise", "code_devise", "Devise"), "Devise"),
           carte(n, 2, 280, 8, "Exposition au change (EUR)", "Exposition au change"),
-          carte(n, 3, 610, 8, "VaR change 95 % 10 j (EUR)", "VaR 95 % à 10 jours"),
+          carte(n, 3, 610, 8, "VaR change 95 % 10 j (EUR)", "Perte possible à 10 jours (VaR)"),
           carte(n, 4, 940, 8, "Coût annuel de couverture de change (EUR)", "Coût annuel de couverture"),
-          visuel(n, 10, "lineChart", 20, 120, 490, 590,
-                 "1 EUR en devise : prévu vs réalisé (défaut USD)",
+          visuel(n, 10, "lineChart", 20, 120, 620, 590,
+                 "1 EUR en devise : prévu et réalisé (USD par défaut)",
                  {"Category": [colonne("mart_prevision_change", "date_jour", "Date")],
-                  "Y": [mesure("Taux de change prévu P05", libelle="P5"),
-                        mesure("Taux de change prévu P50", libelle="P50"),
-                        mesure("Taux de change prévu P95", libelle="P95"),
+                  "Y": [mesure("Taux de change prévu P05", libelle="Bas"),
+                        mesure("Taux de change prévu P50", libelle="Milieu"),
+                        mesure("Taux de change prévu P95", libelle="Haut"),
                         mesure("Taux de change réalisé", libelle="Réalisé")]}),
-          visuel(n, 11, "tableEx", 530, 120, 730, 320, "Décision de couverture par devise",
+          visuel(n, 11, "tableEx", 660, 120, 600, 320, "Décision de couverture par devise",
                  {"Values": [colonne("dim_devise", "code_devise", "Devise"),
                              mesure("Exposition au change (EUR)", libelle="Exposition"),
-                             mesure("VaR change 95 % 10 j (EUR)", libelle="VaR 10 j"),
-                             mesure("Rapport coût / risque de la couverture", libelle="Coût / risque"),
-                             mesure("Recommandation de couverture", libelle="Recommandation")]}),
-          visuel(n, 12, "clusteredBarChart", 530, 450, 730, 260, "Effet de change cumulé par devise (EUR)",
+                             mesure("VaR change 95 % 10 j (EUR)", libelle="Perte possible"),
+                             mesure("Recommandation de couverture", libelle="Décision")]}),
+          visuel(n, 12, "clusteredBarChart", 660, 450, 600, 260, "Effet de change cumulé par devise (EUR)",
                  {"Category": [colonne("dim_devise", "code_devise", "Devise")],
                   "Y": [mesure("Effet de change cumulé (EUR)")]})]
     p.append((n, "Change & couverture", vs))
@@ -439,9 +435,9 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
     n = "p4_stress"
     vs = [segment(n, 1, 20, 8, 295, colonne("Choc retraits %", "Choc retraits %"), "Retraits (% des dépôts)", True),
           segment(n, 2, 335, 8, 295, colonne("Choc change %", "Choc change %"), "Change (%, hors EUR)", True),
-          segment(n, 3, 650, 8, 295, colonne("Multiplicateur sorties", "Multiplicateur sorties"), "Multiplicateur des sorties", True),
+          segment(n, 3, 650, 8, 295, colonne("Multiplicateur sorties", "Multiplicateur sorties"), "Sorties (× normal)", True),
           segment(n, 7, 965, 8, 295, colonne("Choc taux (pb)", "Choc taux (pb)"), "Taux (points de base)", True),
-          carte(n, 4, 20, 84, "Position stressée (EUR)", "Position stressée", l=295, h=92),
+          carte(n, 4, 20, 84, "Position stressée (EUR)", "Position après le choc", l=295, h=92),
           carte(n, 5, 335, 84, "Horizon de survie (jours)", "Survie (vide = sans limite)", l=295, h=92),
           carte(n, 6, 650, 84, "Besoin de refinancement stressé (EUR)", "Besoin de refinancement", l=295, h=92),
           carte(n, 8, 965, 84, "Coût du refinancement stressé (EUR/an)", "Coût annuel du besoin", l=295, h=92),
@@ -450,27 +446,26 @@ def pages_rapport() -> list[tuple[str, str, list[dict]]]:
                              mesure("Position stressée (EUR)", libelle="Position"),
                              mesure("Horizon de survie (jours)", libelle="Survie (j)"),
                              mesure("Statut de résilience", libelle="Statut")]}),
-          visuel(n, 11, "pivotTable", 480, 190, 780, 520, "Scénarios historiques : horizon de survie (jours)",
-                 {"Rows": [colonne("dim_scenario_stress", "libelle_scenario", "Scénario")],
-                  "Columns": [colonne("dim_filiale", "code_filiale", "Filiale")],
-                  "Values": [somme("mart_stress_test", "horizon_survie_jours", "Jours")]},
-                 # additionner des jours de survie entre scénarios ou filiales n'a pas de sens
-                 {"subTotals": [{"properties": {"rowSubtotals": lit(False), "columnSubtotals": lit(False)}}]})]
+          visuel(n, 11, "tableEx", 480, 190, 780, 520, "Les 7 scénarios de crise, pour tout le groupe",
+                 {"Values": [colonne("dim_scenario_stress", "libelle_scenario", "Scénario"),
+                             somme("mart_stress_test", "position_stressee_eur", "Position"),
+                             somme("mart_stress_test", "besoin_refinancement_eur", "Besoin"),
+                             mesure("Filiales critiques")]},
+                 # additionner des scénarios entre eux n'a pas de sens
+                 {"total": [{"properties": {"totals": lit(False)}}]})]
     p.append((n, "Simulateur de stress", vs))
 
     # 5. Qualité : prouver que les chiffres sont fiables
     n = "p5_qualite"
     vs = [segment(n, 1, 20, 8, 240, filiale, "Filiale"),
-          carte(n, 2, 280, 8, "Lignes brutes reçues", "Lignes brutes reçues", l=230),
-          carte(n, 3, 530, 8, "Taux de rejet %", "Taux de rejet", l=230),
-          carte(n, 4, 780, 8, "Rejets inattendus", "Rejets inattendus", l=230),
-          carte(n, 5, 1030, 8, "Écart max à l'encours réel %", "Écart à l'encours réel", l=230),
-          visuel(n, 10, "clusteredBarChart", 20, 120, 620, 590, "Défauts détectés et corrigés par l'ETL, par système source",
+          carte(n, 2, 280, 8, "Lignes brutes reçues", "Lignes brutes reçues", l=480),
+          carte(n, 3, 780, 8, "Taux de rejet %", "Taux de rejet", l=480),
+          visuel(n, 10, "clusteredBarChart", 20, 120, 620, 590, "Défauts corrigés au nettoyage, par système source",
                  {"Category": [colonne("mart_qualite_sources", "systeme_source", "Système source")],
                   "Y": [mesure("Doublons supprimés"), mesure("Libellés corrigés"), mesure("Devises corrigées"),
-                        mesure("Opérations annulées, tests et extournes écartés")]}),
+                        mesure("Opérations annulées, tests et extournes écartés", libelle="Opérations écartées")]}),
           visuel(n, 11, "lineChart", 660, 120, 600, 590,
-                 "Encours de dépôts : réel vs reconstitué (défaut : France)",
+                 "Encours de dépôts : réel et reconstitué (France par défaut)",
                  {"Category": [colonne("mart_qualite_ancrage", "date_ancrage", "Date de publication")],
                   "Y": [mesure("Encours réel publié (devise)", libelle="Réel (banque centrale)"),
                         mesure("Encours reconstitué (devise)", libelle="Reconstitué")]})]

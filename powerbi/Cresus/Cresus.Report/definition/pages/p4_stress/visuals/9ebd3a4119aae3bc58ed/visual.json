@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Multiplicateur des sorties'"
+                  "Value": "'Sorties (× normal)'"
                 }
               }
             }

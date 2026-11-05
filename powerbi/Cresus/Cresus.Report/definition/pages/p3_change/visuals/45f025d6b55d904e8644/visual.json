@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'VaR 95 % à 10 jours'"
+                  "Value": "'Perte possible à 10 jours (VaR)'"
                 }
               }
             }

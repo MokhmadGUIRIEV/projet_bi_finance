@@ -6,6 +6,7 @@
 
 ## 1. Le projet en bref
 - **Cours** : étude de cas IBI (BI), sujet 3 « BI prédictive Finance ».
+- **Groupe G5** : Fabien DEVAUX, Charles ESPRIET, Mehdi FOUIDI, Mokhmad GUIRIEV, Micipssa DJAROUN, Robin VICO.
 - **Problématique** : *Comment l'analyse prédictive et la simulation peuvent-elles être des facteurs de gains dans la gestion de trésorerie d'une banque ?*
 - **Client fictif** : ZF Banque, avec 10 filiales en France, Europe du Nord, Afrique (CFA) et Amérique du Nord. Projet « Crésus » de la Direction Financière.
 - **Livrables du cours** : fiche AMOA (rendue), rapport « réponse à l'appel d'offres » (~15 pages Word), support de soutenance (PowerPoint), POC.
@@ -26,7 +27,7 @@ PostgreSQL = data warehouse
   marts         or     : schéma en étoile (dim_* conformes, fct_* au grain documenté) + marts d'analyse
   ml                   : sorties Python (prévisions, réserve optimale, contrôle a posteriori)
         ▼
-Power BI : powerbi/Cresus/Cresus.pbip (5 pages, 48 mesures DAX, 3 rôles RLS), import depuis marts
+Power BI : powerbi/Cresus/Cresus.pbip (5 pages, 45 mesures DAX, 3 rôles RLS), import depuis marts
 ```
 dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentation et lignage : `dbt docs`.
 
@@ -140,11 +141,12 @@ Autres commandes utiles :
 9. Défauts d'entreprise ajoutés aux exports : migration de format, dérive de schéma, fichiers Excel, montants comptables, pré-autorisations, données tardives, fichiers renvoyés, valeurs nulles codées, encodage cassé, en-têtes répétés. Chacun a sa règle RG-NET et le rapprochement comptable reste exact.
 10. Premier test dans Power BI Desktop (01/11/2026). Il a révélé ce que les validations de schéma ne pouvaient pas voir : import bloqué par des `numeric` de plus de 28 chiffres, filtres inutilisables (liste déroulante coupée), courbes additionnant des devises différentes, totaux de jours sans sens, simulateur incohérent avec `mart_stress_test` (fenêtre de 7 jours au lieu de 30, besoin compensé entre filiales). Tout est corrigé et les valeurs ont été recoupées avec la base. Un second contrôle (03/11/2026) a montré que la carte VaR ignorait les filtres filiale et région, car la VaR est calculée par devise : mesure corrigée. Pour retester une mesure, rouvrir le projet : la session Power BI peut garder d'anciens résultats en cache.
 11. Jeu versionné régénéré avec le générateur actuel en lots de 500, pour garder un dépôt léger.
-12. Allègement après comparaison avec le cours (04/11/2026). Le gros volume reste. PaySim sort de l'entrepôt (table, staging, mart de profil). Rapport ramené de 6 à 5 pages, de 59 à 42 visuels et de 75 à 48 mesures : une page par objectif du sujet, plus la qualité. Le choc de taux, d'abord retiré, a été remis au simulateur : le sujet demande des scénarios de taux. Sécurité par filiale (RLS) ajoutée. Le rendu POC reçoit ce que le cours attend : grille de choix (5 critères + 1 Must), format, moteur et 3 optimisations, RACI, dictionnaire de 6 KPI, recette (5 tests + 1 réconciliation, GO/NOGO).
+12. Allègement après comparaison avec le cours (04/11/2026). Le gros volume reste. PaySim sort de l'entrepôt (table, staging, mart de profil). Rapport ramené de 6 à 5 pages, de 59 à 37 visuels et de 75 à 45 mesures : une page par objectif du sujet, plus la qualité. Le choc de taux, d'abord retiré, a été remis au simulateur : le sujet demande des scénarios de taux. Les libellés du rapport ont été simplifiés (05/11/2026) : décisions courtes, « Bas / Milieu / Haut » au lieu de P5 / P50 / P95. Sécurité par filiale (RLS) ajoutée. Le rendu POC reçoit ce que le cours attend : grille de choix (5 critères + 1 Must), format, moteur et 3 optimisations, RACI, dictionnaire de 6 KPI, recette (5 tests + 1 réconciliation, GO/NOGO).
 13. Test final interrompu par une mise en veille (04/11/2026) : les calculs n'ont pas été touchés, mais le journal a révélé un défaut sans lien avec la veille. L'API de la BCE répond parfois `504`, et une filiale disparaissait alors en silence du contrôle (6/8 au lieu de 7/9). Les dépôts de janvier 2026 sont désormais conservés dans un fichier versionné.
+14. Relecture du MOE après son rendu (05/11/2026) : le WAPE du groupe additionnait des devises différentes, ce qui donnait trop de poids aux francs CFA (17,1 % au lieu de 14,5 %). Il est désormais calculé en euros. Ne jamais additionner des montants en devise locale entre filiales.
 
 ## 8. Résultats clés (gros volume en lots de 50, vérifiés le 01/11/2026 ; le jeu versionné donne des ordres de grandeur très proches, voir docs/09 § 11)
-- Prévision quotidienne : régression calendaire championne sur 20 séries sur 20. WAPE : 12-15 % sur les décaissements, 12-28 % sur les encaissements (États-Unis 27,6 %).
+- Prévision quotidienne : régression calendaire championne sur 20 séries sur 20. WAPE du groupe en euros : 14,5 %. Par filiale : 12-15 % sur les décaissements, 12-28 % sur les encaissements (États-Unis 27,6 %).
 - Gros volume : refinancements 2023 = 3,98 Md€, placements 2025 = 2,62 Md€ ; effet de change −58 M€ (USD), −46 M€ (NOK) ; 7 filiales sur 9 dans la fourchette ; réserve requise France 18,1 % ; fraude 0,02-0,06 % des décaissements en valeur.
 - Dépôts réels de janvier 2026 dans la fourchette à 90 % pour **7 filiales sur 9** ; change : 94 % des jours dans la fourchette.
 - Janvier = 34 % des jours sous 100 % de liquidité (60 sur 175). Réserve requise pour janvier 2026 : ~18 % en France contre 15 % actuellement. Sur-réserve en zone CFA et en Norvège (~90 M€).
@@ -164,11 +166,10 @@ Autres commandes utiles :
 - [x] Ouvrir `Cresus.pbip` sous Windows, actualiser, corriger les visuels.
 - [x] Générer le gros volume en local (`--regenerer --taille-lot 50`) et vérifier que `dbt build` reste vert.
 - [x] Régénérer le jeu versionné avec le générateur actuel (lots de 500).
-- [x] Rendu POC (modèle `05_IBI_MOE_POC`) : `livrables/`, à renommer avec le nom du groupe.
+- [x] Rendu POC (modèle `05_IBI_MOE_POC`) : `livrables/05_IBI_MOE_POC_…_G5.docx`.
 - [x] Support de soutenance sur le modèle du cours : `livrables/04_IBI_SUPPORT_SOUTENANCE_…pptx`.
 - [x] Rapport « réponse à l'appel d'offres » (~15 pages Word) : `livrables/IBI_AMOA_REPONSE_APPEL_OFFRES_…docx`. Le TCO et le planning reposent sur des hypothèses à valider.
 - [x] Fiche d'expertise corrigée : `livrables/03_IBI_AMOA_FICHE_EXPERTISE_…docx`.
 - [x] Webographie : `livrables/IBI_AMOA_WEBOGRAPHIE_…xlsx` (modèle Excel du cours non disponible : à reporter dessus si besoin).
-- [ ] Mettre le numéro du groupe et les noms dans les livrables, puis remplacer `GROUPE` dans le nom des fichiers.
 - [ ] Valider avec le groupe : le choix de Power BI, les notes de la grille de choix, le RACI, le TCO.
 - [ ] Confirmer auprès du professeur que le gros volume est bien demandé (consigne absente des supports du cours).

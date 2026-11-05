@@ -5,7 +5,7 @@
     "x": 280,
     "y": 8,
     "z": 2000,
-    "width": 320,
+    "width": 480,
     "height": 100,
     "tabOrder": 2000
   },
@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Proba. de passer sous 100 %'"
+                  "Value": "'Risque sous 100 % (filiale la plus exposée)'"
                 }
               }
             }

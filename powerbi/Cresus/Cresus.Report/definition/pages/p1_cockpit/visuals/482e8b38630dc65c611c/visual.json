@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "482e8b38630dc65c611c",
   "position": {
-    "x": 20,
-    "y": 184,
+    "x": 965,
+    "y": 84,
     "z": 13000,
-    "width": 400,
+    "width": 295,
     "height": 92,
     "tabOrder": 13000
   },
@@ -23,11 +23,11 @@
                       "Entity": "_Mesures"
                     }
                   },
-                  "Property": "Refinancement levé (EUR)"
+                  "Property": "Excédent placé (EUR)"
                 }
               },
-              "queryRef": "_Mesures.Refinancement levé (EUR)",
-              "nativeQueryRef": "Refinancement levé (EUR)"
+              "queryRef": "_Mesures.Excédent placé (EUR)",
+              "nativeQueryRef": "Excédent placé (EUR)"
             }
           ]
         }
@@ -47,7 +47,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Refinancement levé'"
+                  "Value": "'Excédent placé'"
                 }
               }
             }

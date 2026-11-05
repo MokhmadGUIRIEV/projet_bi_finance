@@ -114,17 +114,6 @@ table _Mesures
 		displayFolder: 4. risque de change
 		lineageTag: 430e0fab97302e9d04d1
 
-	measure 'Rapport coût / risque de la couverture' =
-			VAR DerniereDate = CALCULATE ( MAX ( mart_exposition_change[date_position] ) )
-			RETURN
-			    IF (
-			        HASONEVALUE ( mart_exposition_change[code_devise] ),
-			        CALCULATE ( AVERAGE ( mart_exposition_change[rapport_cout_risque] ), dim_date[date_jour] = DerniereDate )
-			    )
-		formatString: 0.00
-		displayFolder: 4. risque de change
-		lineageTag: fce942d99e2bc1be30b0
-
 	measure 'Recommandation de couverture' =
 			VAR DerniereDate = CALCULATE ( MAX ( mart_exposition_change[date_position] ) )
 			RETURN CALCULATE ( SELECTEDVALUE ( mart_exposition_change[recommandation_couverture] ), dim_date[date_jour] = DerniereDate )
@@ -158,21 +147,14 @@ table _Mesures
 	measure 'WAPE du modèle champion %' =
 			CALCULATE (
 			    DIVIDE (
-			        SUMX ( mart_backtest_journalier, ABS ( mart_backtest_journalier[reel_devise] - mart_backtest_journalier[prevu_devise] ) ),
-			        SUM ( mart_backtest_journalier[reel_devise] )
+			        SUMX ( mart_backtest_journalier, ABS ( mart_backtest_journalier[reel_eur] - mart_backtest_journalier[prevu_eur] ) ),
+			        SUM ( mart_backtest_journalier[reel_eur] )
 			    ),
 			    mart_backtest_journalier[est_champion] = TRUE ()
 			)
 		formatString: 0.0 %
 		displayFolder: 5. prévision
 		lineageTag: 88ed0c8ad2f55e056ce8
-
-	measure 'Couverture de l''intervalle à 90 % %' =
-			DIVIDE ( CALCULATE ( COUNTROWS ( mart_controle_a_posteriori ), mart_controle_a_posteriori[dans_intervalle_90] = TRUE () ),
-			         COUNTROWS ( mart_controle_a_posteriori ) )
-		formatString: 0.0 %
-		displayFolder: 5. prévision
-		lineageTag: 1cbba8a1e8564eda67b0
 
 	measure 'Taux de change prévu P50' =
 			VAR Devise = SELECTEDVALUE ( dim_devise[code_devise], "USD" )
@@ -276,6 +258,11 @@ table _Mesures
 		displayFolder: 6. simulateur de stress (what-if)
 		lineageTag: ba7e94321aa1ae44b0e7
 
+	measure 'Filiales critiques' = CALCULATE ( COUNTROWS ( mart_stress_test ), mart_stress_test[statut_resilience] = "3 - Critique" ) + 0
+		formatString: #,0
+		displayFolder: 6. simulateur de stress (what-if)
+		lineageTag: ce3bf2021d8fe575f2be
+
 	measure 'Lignes brutes reçues' = SUM ( mart_qualite_sources[nb_lignes_brutes] )
 		formatString: #,0
 		displayFolder: 7. qualité des données sources (etl)
@@ -310,16 +297,6 @@ table _Mesures
 		formatString: #,0
 		displayFolder: 7. qualité des données sources (etl)
 		lineageTag: 8d0a64d17344b7fe6972
-
-	measure 'Rejets inattendus' = SUM ( mart_qualite_sources[nb_rejets_inattendus] )
-		formatString: #,0
-		displayFolder: 7. qualité des données sources (etl)
-		lineageTag: c5c71cf0fc0cd97946b2
-
-	measure 'Écart max à l''encours réel %' = MAXX ( mart_qualite_ancrage, ABS ( mart_qualite_ancrage[ecart_pct] ) ) / 100
-		formatString: 0.0 %
-		displayFolder: 7. qualité des données sources (etl)
-		lineageTag: 0d3e5e21450fe88e6485
 
 	measure 'Encours réel publié (devise)' =
 			VAR Filiale = SELECTEDVALUE ( dim_filiale[code_filiale], "FR" )

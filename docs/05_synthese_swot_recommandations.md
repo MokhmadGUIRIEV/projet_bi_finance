@@ -47,7 +47,7 @@ Les montants dépendent des parts de marché supposées : il faut **présenter l
 L'analyse prédictive transforme la trésorerie de centre de coûts en centre de profit, à trois conditions. **Prévoir** les flux par filiale et par devise permet de réduire les coussins de liquidité de précaution et de placer l'excédent. **Simuler** (Monte-Carlo, stress tests) chiffre le risque associé à chaque décision : on sait avec quelle probabilité une filiale passera sous son besoin de liquidité, et combien de jours elle tient en cas de crise. **Fiabiliser** la donnée (sources officielles, règles de gestion testées) rend ces chiffres opposables à la Direction Financière et au superviseur. Le POC montre que c'est faisable à faible coût avec des briques open source et Power BI. Il montre aussi les limites à maîtriser : qualité et profondeur de l'historique, ruptures de séries, et nécessité de toujours comparer un modèle à une référence simple (backtest).
 
 ## 5. Corrections pour la fiche d'expertise
-Fiche corrigée : `livrables/03_IBI_AMOA_FICHE_EXPERTISE_BI-predictive-Finance_GROUPE.docx`. Liste d'origine :
+Fiche corrigée : `livrables/03_IBI_AMOA_FICHE_EXPERTISE_BI-predictive-Finance_G5.docx`. Liste d'origine :
 - Côte d'Ivoire = **XOF** (BCEAO, UEMOA) ; Cameroun = **XAF** (BEAC, CEMAC).
 - Étape 5 : remplacer « Tableau Software » par **Power BI** (outil retenu) ; mentionner dbt pour la modélisation en étoile et les tests.
 - Ajouter les filiales d'Europe du Nord (SEK, DKK, NOK) au périmètre multidevise.

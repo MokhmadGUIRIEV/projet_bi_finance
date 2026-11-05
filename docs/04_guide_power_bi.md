@@ -2,7 +2,7 @@
 
 ## 1. Ouvrir le projet déjà construit
 
-Le rapport est fourni au format **projet Power BI (`.pbip`)** dans `powerbi/Cresus/` : 15 tables importées du schéma `marts`, 4 paramètres What-if, 20 relations, 48 mesures DAX, 3 rôles de sécurité et 5 pages (42 visuels), sur 3 ans (2023-2025). Procédure complète et valeurs attendues : [docs/09](09_procedure_pas_a_pas.md), § 10 et 11.
+Le rapport est fourni au format **projet Power BI (`.pbip`)** dans `powerbi/Cresus/` : 15 tables importées du schéma `marts`, 4 paramètres What-if, 20 relations, 45 mesures DAX, 3 rôles de sécurité et 5 pages (37 visuels), sur 3 ans (2023-2025). Procédure complète et valeurs attendues : [docs/09](09_procedure_pas_a_pas.md), § 10 et 11.
 
 1. Lancer le pipeline (`python pipeline.py`) pour remplir le schéma `marts` de PostgreSQL.
 2. Ouvrir **Power BI Desktop** (version de mi-2025 ou plus récente) → *Fichier → Ouvrir* → `powerbi/Cresus/Cresus.pbip`.
@@ -34,28 +34,28 @@ Une page par objectif du sujet, plus la qualité des données.
 
 ### Page 1 — Cockpit DAF (arbitrer)
 - Segments : filiale, année.
-- Cartes : position de trésorerie, ratio de liquidité, jours sous 100 %, refinancement levé, excédent placé, VaR de change.
+- Cartes : position de trésorerie, ratio de liquidité, refinancement levé, excédent placé.
 - Refinancement levé et excédent placé par mois : on y voit 2023 (refinancement pendant la fuite des dépôts) et 2025 (placements).
-- Tableau de liquidité par filiale.
+- Tableau de liquidité par filiale, avec les jours sous 100 %.
 
 ### Page 2 — Prévisions (anticiper)
-- Segment : filiale. Cartes : probabilité de passer sous 100 %, erreur de prévision (WAPE), janvier 2026 dans la fourchette.
-- Position réalisée puis prévue (P5 / P50 / P95) ; encaissements et décaissements par mois.
-- Réserve requise (P99) contre réserve actuelle ; contrôle sur les dépôts réels au 31/01/2026.
+- Segment : filiale. Cartes : risque de passer sous 100 % (filiale la plus exposée), erreur de prévision (WAPE, calculée en euros).
+- Position réalisée puis prévue, avec sa fourchette ; encaissements et décaissements par mois.
+- Réserve requise (à 99 % de confiance) et réserve actuelle ; dépôts réels au 31/01/2026 et prévision, en devise locale.
 
 ### Page 3 — Change & couverture (couvrir)
-- Segment : devise. Cartes : exposition, VaR 95 % à 10 jours, coût annuel de couverture.
-- Cours prévu (P5 / P50 / P95) et réalisé ; sans devise choisie, la courbe affiche l'USD.
+- Segment : devise. Cartes : exposition, perte possible à 10 jours (VaR), coût annuel de couverture.
+- Cours prévu et réalisé ; sans devise choisie, la courbe affiche l'USD.
 - Tableau de décision par devise ; effet de change cumulé par devise.
 
 ### Page 4 — Simulateur de stress (résister)
 - Segments : retraits, change, multiplicateur des sorties, taux.
-- Cartes : position stressée, survie en jours (vide = sans limite), besoin de refinancement, coût annuel de ce besoin.
-- Simulation par filiale, avec statut de résilience ; matrice des 7 scénarios historiques.
+- Cartes : position après le choc, survie en jours (vide = sans limite), besoin de refinancement, coût annuel de ce besoin.
+- Simulation par filiale, avec son statut ; tableau des 7 scénarios de crise pour le groupe.
 
 ### Page 5 — Qualité des données (prouver)
-- Segment : filiale. Cartes : lignes brutes reçues, taux de rejet, rejets inattendus, écart à l'encours réel.
-- Défauts détectés et corrigés par l'ETL, par système source.
+- Segment : filiale. Cartes : lignes brutes reçues, taux de rejet.
+- Défauts corrigés au nettoyage, par système source.
 - Encours réel publié contre encours reconstitué : les deux courbes se superposent, c'est la preuve visuelle de l'ancrage sur le réel.
 
 ## 4. Sécurité (RLS)

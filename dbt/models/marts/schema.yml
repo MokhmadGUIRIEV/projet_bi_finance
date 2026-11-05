@@ -198,6 +198,8 @@ models:
     columns:
       - name: id_controle
         tests: [unique, not_null]
+      - name: dans_la_fourchette
+        description: Oui si le dépôt réel tombe dans la fourchette P5-P95 prévue, sinon Non.
   - name: mart_reserve_optimale
     description: Réserve requise (P99) vs réserve actuelle par filiale, liquidité libérable et gain annuel au taux réel.
     columns:

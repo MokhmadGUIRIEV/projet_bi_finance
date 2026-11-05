@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
   "name": "01940ef24900a38d8250",
   "position": {
-    "x": 530,
+    "x": 660,
     "y": 120,
     "z": 11000,
-    "width": 730,
+    "width": 600,
     "height": 320,
     "tabOrder": 11000
   },
@@ -58,22 +58,7 @@
               },
               "queryRef": "_Mesures.VaR change 95 % 10 j (EUR)",
               "nativeQueryRef": "VaR change 95 % 10 j (EUR)",
-              "displayName": "VaR 10 j"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Mesures"
-                    }
-                  },
-                  "Property": "Rapport coût / risque de la couverture"
-                }
-              },
-              "queryRef": "_Mesures.Rapport coût / risque de la couverture",
-              "nativeQueryRef": "Rapport coût / risque de la couverture",
-              "displayName": "Coût / risque"
+              "displayName": "Perte possible"
             },
             {
               "field": {
@@ -88,7 +73,7 @@
               },
               "queryRef": "_Mesures.Recommandation de couverture",
               "nativeQueryRef": "Recommandation de couverture",
-              "displayName": "Recommandation"
+              "displayName": "Décision"
             }
           ]
         }

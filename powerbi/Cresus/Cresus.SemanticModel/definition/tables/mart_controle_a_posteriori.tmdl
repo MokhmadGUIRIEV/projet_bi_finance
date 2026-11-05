@@ -61,6 +61,12 @@ table mart_controle_a_posteriori
 		summarizeBy: none
 		sourceColumn: dans_intervalle_90
 
+	column dans_la_fourchette
+		dataType: string
+		lineageTag: 7c1e4a92d3b05f68a2c1
+		summarizeBy: none
+		sourceColumn: dans_la_fourchette
+
 	column source
 		dataType: string
 		lineageTag: ff423bfa42b3a4f93ff1

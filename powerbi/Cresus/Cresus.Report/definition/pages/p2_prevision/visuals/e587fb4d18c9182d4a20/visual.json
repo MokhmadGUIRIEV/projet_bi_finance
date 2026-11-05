@@ -58,7 +58,7 @@
               },
               "queryRef": "mart_controle_a_posteriori.depots_p50_devise",
               "nativeQueryRef": "depots_p50_devise",
-              "displayName": "Prévu P50"
+              "displayName": "Prévu"
             },
             {
               "field": {
@@ -83,12 +83,12 @@
                       "Entity": "mart_controle_a_posteriori"
                     }
                   },
-                  "Property": "dans_intervalle_90"
+                  "Property": "dans_la_fourchette"
                 }
               },
-              "queryRef": "mart_controle_a_posteriori.dans_intervalle_90",
-              "nativeQueryRef": "dans_intervalle_90",
-              "displayName": "Dans [P5 ; P95]"
+              "queryRef": "mart_controle_a_posteriori.dans_la_fourchette",
+              "nativeQueryRef": "dans_la_fourchette",
+              "displayName": "Dans la fourchette"
             }
           ]
         }
@@ -108,7 +108,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Contrôle : dépôts réels au 31/01/2026 vs prévus'"
+                  "Value": "'Dépôts réels au 31/01/2026 et prévision (devise locale)'"
                 }
               }
             }

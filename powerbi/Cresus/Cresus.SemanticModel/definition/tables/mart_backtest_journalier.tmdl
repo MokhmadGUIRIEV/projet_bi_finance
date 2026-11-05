@@ -60,6 +60,20 @@ table mart_backtest_journalier
 		summarizeBy: sum
 		sourceColumn: prevu_devise
 
+	column reel_eur
+		dataType: double
+		formatString: #,0
+		lineageTag: 3f7a1c64e2d9805b4c17
+		summarizeBy: sum
+		sourceColumn: reel_eur
+
+	column prevu_eur
+		dataType: double
+		formatString: #,0
+		lineageTag: 9b2e6d10c47f3a85e6d2
+		summarizeBy: sum
+		sourceColumn: prevu_eur
+
 	partition mart_backtest_journalier = m
 		mode: import
 		source =
