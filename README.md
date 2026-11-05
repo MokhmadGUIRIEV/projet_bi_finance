@@ -3,15 +3,17 @@
 > **Problématique** : *« Comment l'analyse prédictive et la simulation peuvent-elles être des facteurs de gains dans la gestion de trésorerie d'une banque ? »*
 > Étude de cas IBI — Sujet 3 (BI prédictive Finance).
 
+> **Nouveau dans le projet ? Commencez par le [guide du projet](docs/00_guide_du_projet.md)** : ce que fait le projet, comment le lancer, les dossiers et les résultats expliqués.
+
 Ce dépôt contient le **POC complet** : une chaîne de données de bout en bout, des sources officielles jusqu'au cockpit Power BI de la Direction Financière, sur **3 ans (2023-2025) et 10 filiales**.
 
 | Brique | Outil | Rôle |
 |---|---|---|
 | Sources | Fichiers versionnés | **Exports bruts (« sales ») des 4 systèmes bancaires des filiales** sur 2023-2025 (`data/sources_internes/`, 371 fichiers, 4,3 M de lignes) + séries réelles des banques centrales et cours BCE (`data/sources/`) |
 | Extract + Load | **Python** (pandas, psycopg) | Chargement tel quel dans la zone brute de PostgreSQL : incrémental, idempotent, tracé (fichier, ligne, MD5) |
-| Entrepôt de données | **PostgreSQL 15 ou 16** | Architecture en couches : `raw` (bronze) → `staging` / `intermediate` (argent) → `marts` (or, schéma en étoile) + `ml` |
-| Transform + qualité | **dbt** | Nettoyage (11 règles RG-NET), dédoublonnage, rejets tracés, schéma en étoile, 97 tests (rapprochement comptable, complétude, ancrage sur les dépôts réels), lignage |
-| Analyse prédictive | **Python** (statsmodels, numpy) | Champion/challenger au pas quotidien, simulation Monte-Carlo, réserve optimale, contrôle sur des données réelles postérieures |
+| Entrepôt de données | **PostgreSQL 15 ou 16** | Architecture en couches : `raw` (bronze) → `staging` / `intermediate` (silver) → `marts` (gold, schéma en étoile) + `ml` |
+| Transform + qualité | **dbt** | Nettoyage (11 règles RG-NET), dédoublonnage, rejets tracés, schéma en étoile, 97 tests (rapprochement comptable, complétude, ancrage sur les dépôts réels), lineage |
+| Analyse prédictive | **Python** (statsmodels, numpy) | Comparaison de 3 modèles au pas quotidien, simulation Monte-Carlo, réserve optimale, contrôle sur des données réelles postérieures |
 | Restitution | **Power BI** | Projet `.pbip` prêt à ouvrir : 5 pages, 45 mesures DAX, simulateur What-if, sécurité par filiale (RLS) |
 
 ---
@@ -27,7 +29,7 @@ flowchart LR
         W[Webstat<br/>cours BCE]
     end
     subgraph PostgreSQL [PostgreSQL = data warehouse · transformations SQL exécutées par dbt]
-        RAW[(raw<br/>bronze)] --> STG[(staging<br/>argent)] --> INT[(intermediate<br/>argent)] --> MARTS[(marts<br/>or : étoile)]
+        RAW[(raw<br/>bronze)] --> STG[(staging<br/>silver)] --> INT[(intermediate<br/>silver)] --> MARTS[(marts<br/>gold : étoile)]
         MARTS --> ML[(ml)] --> MARTS
     end
     F -- Python : load --> RAW
@@ -69,7 +71,7 @@ Les défauts, les totaux et les ancrages sont les mêmes ; seul le niveau de dé
 
 **Reprise du projet** : le contexte complet (décisions, état, reste à faire) est dans [`CLAUDE.md`](CLAUDE.md), chargé automatiquement par Claude Code.
 
-Lignage et dictionnaire de données (idéal en soutenance) : `cd dbt ; dbt docs generate --profiles-dir . ; dbt docs serve --profiles-dir .`
+Lineage et dictionnaire de données (idéal en soutenance) : `cd dbt ; dbt docs generate --profiles-dir . ; dbt docs serve --profiles-dir .`
 
 ---
 
@@ -198,7 +200,7 @@ erDiagram
 ├── dbt/                        seeds (référentiels), staging, intermediate, marts, tests, macros
 ├── powerbi/Cresus/             projet Power BI prêt à ouvrir (Cresus.pbip)
 ├── powerbi/                    générateur du projet, mesures DAX, thème, outil .NET TomTool
-├── docs/                       livrables AMOA / MOE (01 à 08) et procédure de lancement (09)
+├── docs/                       guide du projet (00), documentation (01 à 08) et procédure de lancement (09)
 └── livrables/                  fiche d'expertise, webographie, réponse à l'appel d'offres, rendu POC, support de soutenance
 ```
 

@@ -22,14 +22,14 @@ data/sources/           séries RÉELLES : dépôts et taux directeurs des banqu
         ▼
 PostgreSQL = data warehouse
   raw           bronze : lignes brutes + fichier, ligne, date de chargement
-  staging       argent : 1 modèle dbt par système source (typage, formats, fuseaux, unités, sens)
-  intermediate  argent : union, correspondances, dédoublonnage, exclusions, rejets tracés (RG-NET-xx)
-  marts         or     : schéma en étoile (dim_* conformes, fct_* au grain documenté) + marts d'analyse
+  staging       silver : 1 modèle dbt par système source (typage, formats, fuseaux, unités, sens)
+  intermediate  silver : union, correspondances, dédoublonnage, exclusions, rejets tracés (RG-NET-xx)
+  marts         gold   : schéma en étoile (dim_* conformes, fct_* au grain documenté) + marts d'analyse
   ml                   : sorties Python (prévisions, réserve optimale, contrôle a posteriori)
         ▼
 Power BI : powerbi/Cresus/Cresus.pbip (5 pages, 45 mesures DAX, 3 rôles RLS), import depuis marts
 ```
-dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentation et lignage : `dbt docs`.
+dbt ne stocke rien : il exécute le SQL **dans** PostgreSQL. Tests, documentation et lineage : `dbt docs`.
 
 ## 3. Les données (point le plus important pour comprendre le projet)
 1. **Départ** : PaySim (Kaggle `ealaxi/paysim1`, 6,36 M de lignes, 31 jours). Le profilage (docs/06) a montré qu'il est inexploitable seul : 12 jours normaux seulement, fraude constante, soldes incohérents, pas d'entrées interbancaires.
@@ -98,7 +98,7 @@ Sans Docker, un PostgreSQL 15/16 installé localement convient (base `cresus`, u
 Autres commandes utiles :
 - `python pipeline.py --etapes dbt prevision dbt_prev` : relancer seulement certaines étapes.
 - `cd dbt ; dbt build --profiles-dir .` : modèles et tests.
-- `dbt docs generate --profiles-dir . ; dbt docs serve --profiles-dir .` : lignage.
+- `dbt docs generate --profiles-dir . ; dbt docs serve --profiles-dir .` : lineage.
 - `python -m etl.sources_reelles` : rafraîchir les séries des banques centrales (Internet requis).
 - **Power BI** : ouvrir `powerbi/Cresus/Cresus.pbip` → *Actualiser* (PostgreSQL `postgres` / `postgres`, onglet Base de données). Guide : docs/04.
 - **Régénérer le projet Power BI** après un changement de modèle dbt (nécessite le SDK .NET 8) :
@@ -119,6 +119,7 @@ Autres commandes utiles :
 | `dbt/models/marts/` | Dimensions, faits, analyses, prévision (grains dans `schema.yml`) |
 | `dbt/seeds/` | Référentiels : filiales (part de marché, système, fuseau), devises, taux directeurs réels, scénarios, correspondances |
 | `powerbi/mesures_dax.dax` | **Source unique des mesures DAX** (lues par `generer_pbip.py`) |
+| `docs/00_guide_du_projet.md` | **Guide pour l'équipe : projet, lancement, dossiers, résultats expliqués** |
 | `docs/01` à `docs/08` | Cadrage AMOA, spécifications MOE, prédictif, Power BI, synthèse/SWOT, profil et KPI, données 3 ans, ETL |
 
 ## 6. Conventions
@@ -172,4 +173,5 @@ Autres commandes utiles :
 - [x] Fiche d'expertise corrigée : `livrables/03_IBI_AMOA_FICHE_EXPERTISE_…docx`.
 - [x] Webographie : `livrables/IBI_AMOA_WEBOGRAPHIE_…xlsx` (modèle Excel du cours non disponible : à reporter dessus si besoin).
 - [ ] Valider avec le groupe : le choix de Power BI, les notes de la grille de choix, le RACI, le TCO.
+- [x] Guide de l'équipe : `docs/00_guide_du_projet.md`.
 - [ ] Confirmer auprès du professeur que le gros volume est bien demandé (consigne absente des supports du cours).

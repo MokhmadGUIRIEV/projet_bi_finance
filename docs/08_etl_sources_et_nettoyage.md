@@ -11,7 +11,7 @@
 | Prédictif | PostgreSQL, schéma `ml` | Python | Prévisions, réserve optimale, contrôle a posteriori | Résultats réinjectés dans des marts dbt |
 | Restitution | `powerbi/Cresus/Cresus.pbip` | Power BI | Import du schéma `marts` | Mesures DAX centralisées |
 
-**dbt ne stocke rien** : il compile du SQL et l'exécute **dans** PostgreSQL, qui est le data warehouse. dbt apporte en plus les dépendances entre modèles, les tests, la documentation et le lignage (`dbt docs serve`).
+**dbt ne stocke rien** : il compile du SQL et l'exécute **dans** PostgreSQL, qui est le data warehouse. dbt apporte en plus les dépendances entre modèles, les tests, la documentation et le lineage (`dbt docs serve`).
 
 ## 2. Les 4 systèmes sources (dictionnaire des données brutes)
 
@@ -135,7 +135,7 @@ Choix de modélisation :
 - **Clés métier stables comme clés de dimension** (codes ISO, codes filiale) : elles ne changent pas et n'ont pas besoin d'historisation sur la période. Une clé de substitution s'imposerait avec un historique de type 2.
 - **Dimensions conformes** : la même `dim_date` et la même `dim_filiale` filtrent tous les faits, ce qui permet de croiser flux, positions, prévisions et qualité.
 - **Grain documenté** dans `models/marts/schema.yml` (`meta.grain`), visible dans `dbt docs`.
-- **Exposition** : le tableau de bord Power BI est déclaré dans `models/exposures.yml` et apparaît en bout de lignage dans `dbt docs`.
+- **Exposition** : le tableau de bord Power BI est déclaré dans `models/exposures.yml` et apparaît en bout de lineage dans `dbt docs`.
 
 ## 7. Exploitation
 - `python pipeline.py` : chargement incrémental (seuls les fichiers nouveaux ou modifiés sont rechargés), puis transformations, tests et prévisions.

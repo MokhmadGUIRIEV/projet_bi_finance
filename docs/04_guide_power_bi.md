@@ -67,4 +67,4 @@ Pour tester : *Modélisation → Afficher comme rôles*. Le rôle France doit af
 ## 5. Conseils pour la soutenance
 - Démonstration en direct : régler les retraits sur 20 %, les sorties sur 2,5 et le taux sur 150 (scénario de panique), et montrer quelles filiales passent en « Critique ».
 - Montrer la page Qualité : encours réel contre reconstitué, puis la page Prévisions : la fourchette contenait le réel de janvier 2026 pour 7 filiales sur 9.
-- Afficher le lignage `dbt docs` pour démontrer la traçabilité (exigence Bâle III / BCBS 239).
+- Afficher le lineage `dbt docs` pour démontrer la traçabilité (exigence Bâle III / BCBS 239).

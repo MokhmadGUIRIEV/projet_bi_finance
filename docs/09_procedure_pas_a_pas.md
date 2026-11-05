@@ -228,8 +228,8 @@ Une carte qui affiche *(Vide)* pour la survie signifie qu'il n'y a pas de fuite 
 | Schéma | Contenu |
 |---|---|
 | `raw` | Données sales, telles que reçues (bronze) |
-| `staging`, `intermediate` | Nettoyage (argent) |
-| `marts` | Étoile et analyses, lues par Power BI (or) |
+| `staging`, `intermediate` | Nettoyage (silver) |
+| `marts` | Étoile et analyses, lues par Power BI (gold) |
 | `ml` | Sorties des prévisions |
 
 Dans le *Query Tool*, trois requêtes utiles :
@@ -246,7 +246,7 @@ where motif_rejet is not null group by 1 order by 2 desc;
 select * from raw.src_sab limit 20;
 ```
 
-Pour le lignage et le dictionnaire de données :
+Pour le lineage et le dictionnaire de données :
 
 ```powershell
 cd dbt

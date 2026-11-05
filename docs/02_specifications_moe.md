@@ -6,9 +6,9 @@
 |---|---|---|---|
 | Brute (bronze) | `raw` | tables en texte (COPY), chargement incrémental par fichier | Python `etl/chargement_sources_internes.py`, `etl/chargement_raw.py` |
 | Référentiels | `referentiel` | tables (dbt seed) | dbt `seeds/` |
-| Nettoyage par système source (argent) | `staging` | vues | dbt `models/staging` (`stg_sab__`, `stg_nordic__`, `stg_americore__`, `stg_delta__operations`) |
-| Union, dédoublonnage, rejets, règles métier (argent) | `intermediate` | vues / tables | dbt `models/intermediate` |
-| Restitution : schéma en étoile (or) | `marts` | tables (fait principal incrémental) | dbt `models/marts` |
+| Nettoyage par système source (silver) | `staging` | vues | dbt `models/staging` (`stg_sab__`, `stg_nordic__`, `stg_americore__`, `stg_delta__operations`) |
+| Union, dédoublonnage, rejets, règles métier (silver) | `intermediate` | vues / tables | dbt `models/intermediate` |
+| Restitution : schéma en étoile (gold) | `marts` | tables (fait principal incrémental) | dbt `models/marts` |
 | Prédictif | `ml` | tables | Python `etl/prevision.py` |
 
 Ordonnancement (`pipeline.py`) : `extract → load → dbt build (hors prévision) → prévision Python → dbt build (tag prevision)`.
@@ -71,7 +71,7 @@ Flux du jour, `cible_reserve_mois_devise`, `position_ouverture_devise`, `positio
 ### Tables d'analyse
 `mart_exposition_change` (jour × devise), `mart_liquidite_placement` (jour × filiale), `mart_stress_test` (scénario × filiale), `mart_qualite_ancrage` (réel publié vs reconstitué), `mart_prevision_tresorerie`, `mart_prevision_change`, `mart_backtest_journalier`, `mart_reserve_optimale` (réserve requise P99), `mart_controle_a_posteriori` (prévision vs dépôts réels de janvier 2026).
 
-Le dictionnaire complet et le graphe de lignage s'obtiennent avec `dbt docs generate && dbt docs serve`.
+Le dictionnaire complet et le graphe de lineage s'obtiennent avec `dbt docs generate && dbt docs serve`.
 
 ## 4. Plan de tests (97 tests dbt)
 
